@@ -9,11 +9,22 @@ version = "0.7.0"
 authors = ["Emerentius"]
 edition = "2018"
 
+
+[lib]
+crate-type = ["cdylib"]
+
 [dependencies]
 rand = "0.7.3"
 serde = { version = "1.0.80", optional = true }
 crunchy = "0.2.1"
 thiserror = "1.0.21"
+wasm-bindgen = "*"
+
+[dependencies.web-sys]
+version = "*"
+features = [
+  "console"
+]
 
 [features]
 # The solver does enough indexing that the performance impact can be significant

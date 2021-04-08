@@ -51,5 +51,14 @@ pub mod parse_errors;
 mod solver;
 pub mod strategy;
 
+use wasm_bindgen::prelude::*;
+use web_sys::console;
+
 pub use crate::board::Sudoku;
 pub use crate::board::Symmetry;
+
+#[wasm_bindgen]
+pub fn greet(name: &str){
+    console::log_1(&name.into());
+    console::log_1(&"test".into());
+}

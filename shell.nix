@@ -14,9 +14,14 @@ let
       "rust-analysis"
       "rls-preview"
     ];
+    targets = [
+      "wasm32-unknown-unknown"
+    ];
   };
 in pkgs.mkShell {
   buildInputs = [
     rust
+    pkgs.wasm-pack
+    pkgs.nodejs
   ];
 }
