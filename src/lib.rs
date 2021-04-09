@@ -63,12 +63,13 @@ pub fn greet(name: &str){
 }
 
 #[wasm_bindgen]
-pub fn solve(sodoku: &str){
+pub fn solve(sodoku: &str) -> String {
     let s = Sudoku::from_str_line(sodoku).unwrap();
     if let Some(solved) = s.solution() {
-        greet(&solved.to_str_line())
+        let line: &str = &solved.to_str_line();
+        return String::from(line);
     }
     else{
-        greet("not solvable")
+        return String::new()
     }
 }
