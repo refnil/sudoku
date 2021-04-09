@@ -23,5 +23,6 @@ in pkgs.mkShell {
     rust
     pkgs.wasm-pack
     pkgs.nodejs
+    pkgs.cargo-watch
   ];
 }
