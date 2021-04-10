@@ -82,6 +82,13 @@ pub fn solve(sodoku: &str) -> String {
 
 #[wasm_bindgen]
 pub fn generate() -> String {
-    let line: &str = &Sudoku::generate().to_str_line();
+    let s = Sudoku::generate_with_symmetry(Symmetry::None);
+    let line: &str = &s.to_str_line();
     String::from(line)
+}
+
+#[wasm_bindgen]
+pub fn solution_count(sudoku: &str) -> usize {
+    let s = Sudoku::from_str_line(sudoku).unwrap();
+    s.solutions_count_up_to(1000)
 }

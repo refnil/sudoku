@@ -1,6 +1,7 @@
 
 import("./node_modules/sudoku/sudoku.js").then((js) => {
   var cells = getElementsByXPath('//li/span')
+  var solution_count = document.getElementById('count')
   var selected = new Set()
   var line = '..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..';
 
@@ -73,6 +74,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
             cells[cell_id].innerHTML = key
           }
         }
+        update_solution_count()
       }
       else if (event.key == "Delete" || event.key == "Backspace"){
         for (let cell_id of selected) {
@@ -80,11 +82,29 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
             cells[cell_id].innerHTML = ""
           }
         }
+        update_solution_count()
       }
       else {
         console.log("unhandled event", event.key)
       }
     })
+  }
+
+  function can_change(id) {
+    if (app_mode == 'setter') {
+      return true;
+    }
+    else if (app_mode == 'solver') {
+      return !cells[id].classList.contains('clue')
+    }
+    else {
+      throw "unknown app_mode"
+    }
+  }
+
+  function change_mode() {
+    app_mode = app_mode == 'setter' ? 'solver' : 'setter'
+    app_mode_text.innerHTML = app_mode
   }
 
   function clear() {
@@ -93,9 +113,18 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         cells[i].innerHTML = ""
       }
     }
+    update_solution_count()
   }
 
-  function solve_current(){
+  function reset() {
+    for(i = 0; i < cells.length; i++){
+      cells[i].innerHTML = ""
+      cells[i].className = ""
+    }
+    update_solution_count()
+  }
+
+  function get_current_line() {
     line = ""
     for(i = 0; i < 81; i++){
       var c = cells[i].innerHTML;
@@ -106,7 +135,18 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         line += cells[i].innerHTML;
       }
     }
-    var res = js.solve(line)
+    return line
+  }
+
+  function update_solution_count() {
+    var t0 = performance.now()
+    solution_count.innerHTML = js.solution_count(get_current_line())
+    var t1 = performance.now()
+    console.log("solution count timing: ", t1-t0)
+  }
+
+  function solve_current(){
+    var res = js.solve(get_current_line())
     for(i = 0; i < 81; i++){
       cells[i].innerHTML = res[i];
     }
@@ -130,6 +170,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         cells[i].classList.add('other')
       }
     }
+    update_solution_count()
   }
 
   js.init()
