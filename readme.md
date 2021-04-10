@@ -38,3 +38,7 @@ if let Some(solution) = sudoku.solution() {
     let cell_contents: [u8; 81] = solution.to_bytes();
 }
 ```
+
+## Source
+
+- https://codepen.io/sdobson/pen/aEWBQw
