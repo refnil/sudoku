@@ -155,8 +155,14 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
 
   function solve_current(){
     var res = js.solve(get_current_line())
+    if (res.length != 81){
+      return
+    }
     for(i = 0; i < 81; i++){
       cells[i].innerHTML = res[i];
+      if(!cells[i].classList.contains('clue')){
+        cells[i].classList.add('other')
+      }
     }
   }
 
