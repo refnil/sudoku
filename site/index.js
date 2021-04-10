@@ -2,6 +2,8 @@
 import("./node_modules/sudoku/sudoku.js").then((js) => {
   var cells = getElementsByXPath('//li/span')
   var solution_count = document.getElementById('count')
+  var app_mode = 'setter'
+  var app_mode_text = document.getElementById('app_mode')
   var selected = new Set()
   var line = '..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..';
 
@@ -63,6 +65,10 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     new_sudoku.onclick = generate_new;
     clear_button = document.getElementById("clear");
     clear_button.onclick = clear;
+    reset_button = document.getElementById("reset");
+    reset_button.onclick = reset;
+    app_mode_button = document.getElementById("app_mode_button");
+    app_mode_button.onclick = change_mode;
   }
 
   function init_keyboard() {
@@ -70,16 +76,18 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       var key = parseInt(event.key)
       if (Number.isInteger(key) && key >= 1 && key <= 9){
         for (let cell_id of selected) {
-          if (cells[cell_id].classList.contains('other')) {
+          if (can_change(cell_id)) {
             cells[cell_id].innerHTML = key
+            cells[cell_id].className = app_mode == 'setter' ? 'clue' : 'other'
           }
         }
         update_solution_count()
       }
       else if (event.key == "Delete" || event.key == "Backspace"){
         for (let cell_id of selected) {
-          if (cells[cell_id].classList.contains('other')) {
+          if (can_change(cell_id)) {
             cells[cell_id].innerHTML = ""
+            cells[cell_id].className = ""
           }
         }
         update_solution_count()

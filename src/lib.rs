@@ -69,8 +69,8 @@ pub fn greet(name: &str){
 }
 
 #[wasm_bindgen]
-pub fn solve(sodoku: &str) -> String {
-    let s = Sudoku::from_str_line(sodoku).unwrap();
+pub fn solve(sudoku: &str) -> String {
+    let s = Sudoku::from_str_line(sudoku).unwrap();
     if let Some(solved) = s.solution() {
         let line: &str = &solved.to_str_line();
         return String::from(line);
