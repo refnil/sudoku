@@ -40,9 +40,6 @@ li {
   display: flex;
   align-items: center;
   justify-content: center;
-  span {
-    margin-top: 0.4rem;
-  }  
 }
 
 .note {
@@ -56,9 +53,18 @@ li {
   .note {display:none;}
 }
 
+span {
+  margin-top: 0.4rem;
+  user-select: none;
+}
+
 .clue {
 }
 
 .other {
   color: gray
+}
+
+.selected {
+  background-color: RGB(247, 244, 134)
 }
