@@ -55,3 +55,10 @@ li {
 @supports (display:grid) {
   .note {display:none;}
 }
+
+.clue {
+}
+
+.other {
+  color: gray
+}

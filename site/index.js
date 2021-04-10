@@ -22,8 +22,10 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function init_button() {
-    button = getElementsByXPath('//button')[0];
-    button.onclick = solve_current;
+    solve = getElementsByXPath('//button[@id="solve"]')[0];
+    solve.onclick = solve_current;
+    new_sudoku = getElementsByXPath('//button[@id="new"]')[0];
+    new_sudoku.onclick = generate_new;
   }
 
   function solve_current(){
@@ -43,6 +45,10 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     for(i = 0; i < 81; i++){
       cases[i].innerHTML = res[i];
     }
+  }
+
+  function generate_new() {
+    set_line(js.generate())
   }
 
   function set_line(line){

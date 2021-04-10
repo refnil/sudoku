@@ -79,3 +79,9 @@ pub fn solve(sodoku: &str) -> String {
         return String::new()
     }
 }
+
+#[wasm_bindgen]
+pub fn generate() -> String {
+    let line: &str = &Sudoku::generate().to_str_line();
+    String::from(line)
+}
