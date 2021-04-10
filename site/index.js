@@ -1,6 +1,6 @@
 
 import("./node_modules/sudoku/sudoku.js").then((js) => {
-  var cases = getElementsByXPath('//li/span')
+  var cells = getElementsByXPath('//li/span')
   var line = '..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..';
 
   function getElementsByXPath(xpath)
@@ -15,9 +15,8 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function init_cells(){
-    //console.log(cases)
-    for (i = 0; i < cases.length; i++) {
-      cases[i].innerHTML = i
+    for (i = 0; i < cells.length; i++) {
+      cells[i].innerHTML = i
     } 
   }
 
@@ -31,19 +30,17 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   function solve_current(){
     line = ""
     for(i = 0; i < 81; i++){
-      var c = cases[i].innerHTML;
+      var c = cells[i].innerHTML;
       if(c == ''){
         line += '.';
       }
       else{
-        line += cases[i].innerHTML;
+        line += cells[i].innerHTML;
       }
     }
-    console.log(line)
     var res = js.solve(line)
-    console.log(res)
     for(i = 0; i < 81; i++){
-      cases[i].innerHTML = res[i];
+      cells[i].innerHTML = res[i];
     }
   }
 
@@ -53,16 +50,16 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
 
   function set_line(line){
     for(i = 0; i < 81; i++){
-      cases[i].classList.remove('clue')
-      cases[i].classList.remove('other')
+      cells[i].classList.remove('clue')
+      cells[i].classList.remove('other')
 
       if(line[i] != '.'){
-        cases[i].innerHTML = line[i]
-        cases[i].classList.add('clue')
+        cells[i].innerHTML = line[i]
+        cells[i].classList.add('clue')
       }
       else {
-        cases[i].innerHTML = ""
-        cases[i].classList.add('other')
+        cells[i].innerHTML = ""
+        cells[i].classList.add('other')
       }
     }
   }
