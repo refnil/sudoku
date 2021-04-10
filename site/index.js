@@ -61,6 +61,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     }
   }
 
+  js.init()
   init_cells()
   init_button()
   set_line(line)

@@ -53,9 +53,15 @@ pub mod strategy;
 
 use wasm_bindgen::prelude::*;
 use web_sys::console;
+use console_error_panic_hook;
 
 pub use crate::board::Sudoku;
 pub use crate::board::Symmetry;
+
+#[wasm_bindgen]
+pub fn init(){
+    console_error_panic_hook::set_once();
+}
 
 #[wasm_bindgen]
 pub fn greet(name: &str){
