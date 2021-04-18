@@ -50,16 +50,6 @@ impl Variant {
 
     /// Solve sudoku and return solution if solution is unique.
     pub fn solution(self) -> Option<Sudoku> {
-        // without at least 8 digits present, sudoku has multiple solutions
-        // bitmask
-        let mut nums_contained: u16 = 0;
-        // same with less than 17 clues
-        let mut n_clues = 0;
-        //self.basiter().filter_map(|id| id).for_each(|num| {
-            //nums_contained |= 1 << num;
-            //n_clues += 1;
-        //});
-
         let solutions = self.solutions_up_to(2);
         match solutions.len() == 1 {
             true => Some(solutions[0]),
@@ -91,11 +81,17 @@ mod test {
 
     #[test]
     fn test_both_diag() {
-        let line = "..5.2...8..9..6.73.3.7..6..1....5..972.94.3.5...38..2...2.5.9...1.6.95.2....7..36;diag_pos;diag_neg";
+        let line = "......9....36...8..9.2...3..7.....2...249.....5.........7.3.5.25.9..68...4...2..7;diag_pos;diag_neg";
         let s = Variant::from_str_line(line).unwrap();
         assert_eq!(s.diag_pos, true);
         assert_eq!(s.diag_neg, true);
         assert_eq!(s.solutions_up_to(4).len(), 1);
     }
 
+    #[test]
+    fn test_empty_is_possible() {
+        let line = ".................................................................................;diag_pos;diag_neg";
+        let s = Variant::from_str_line(line);
+        assert!(s.is_ok());
+    }
 }

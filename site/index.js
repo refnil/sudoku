@@ -9,8 +9,10 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var line = '..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..';
   var diag_pos = false;
   var diag_pos_text = document.getElementById('diag_pos');
+  var diag_pos_vis = document.getElementById('diag_pos_vis')
   var diag_neg = false;
   var diag_neg_text = document.getElementById('diag_neg');
+  var diag_neg_vis = document.getElementById('diag_neg_vis')
 
   function getElementsByXPath(xpath)
   {
@@ -90,6 +92,12 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     diag_pos_button.onclick = (event) => {
       diag_pos = !diag_pos;
       update_text_on_off(diag_pos, diag_pos_text);
+      if (diag_pos) {
+        diag_pos_vis.classList.add('diag', 'diag-pos');
+      }
+      else {
+        diag_pos_vis.classList.remove('diag-pos');
+      }
       update_solution_count();
     }
 
@@ -97,6 +105,12 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     diag_neg_button.onclick = (event) => {
       diag_neg = !diag_neg;
       update_text_on_off(diag_neg, diag_neg_text);
+      if (diag_neg) {
+        diag_neg_vis.classList.add('diag', 'diag-neg');
+      }
+      else {
+        diag_neg_vis.classList.remove('diag-neg');
+      }
       update_solution_count();
     }
   }
@@ -214,6 +228,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         }
       }
     }
+    update_solution_count();
   }
 
   function generate_new() {
