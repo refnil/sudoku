@@ -37,10 +37,12 @@
 //  zhouyundong, champagne and JasonLion have all given permission
 //  for a port under the AGPLv3 license in the forum thread
 //      http://forum.enjoysudoku.com/3-77us-solver-2-8g-cpu-testcase-17sodoku-t30470-270.html#p262718
-
 use crate::helper::Unsolvable;
 use crate::Sudoku;
 use crunchy::unroll;
+
+pub mod variant;
+//pub(crate) use self::variant::VariantSolver;
 
 // masks of 27 bits
 const NONE: u32 = 0;
@@ -49,11 +51,13 @@ const LOW9: u32 = 0o000_000_777;
 
 // When the solver finds a solution it can save it or just count.
 // The latter is marginally faster.
-enum Solutions<'a> {
+pub(crate) enum SolutionsGeneral<'a, T> {
     Count(usize),
-    Vector(&'a mut Vec<Sudoku>),
+    Vector(&'a mut Vec<T>),
     Buffer(&'a mut [[u8; 81]], usize),
 }
+
+type Solutions<'a> = SolutionsGeneral<'a, Sudoku>;
 
 impl Solutions<'_> {
     fn len(&self) -> usize {
@@ -103,35 +107,25 @@ impl Solutions<'_> {
 #[derive(Clone, Copy)]
 pub(crate) struct SudokuSolver {
     // possible_cells_in_subband = subbands[digit*3 + band]
-    poss_cells: UncheckedIndexArray27,
+    pub poss_cells: UncheckedIndexArray27,
     prev_poss_cells: UncheckedIndexArray27,
     // empty_cells = unsolved_cells[band]
-    unsolved_cells: UncheckedIndexArray3,
+    pub unsolved_cells: UncheckedIndexArray3,
     requirement_for_weird_optimization: UncheckedIndexArray3,
     // bivalue_cells = pairs[band]
     pairs: UncheckedIndexArray3,
 }
 
-impl SudokuSolver {
-    // jczsolve equivalent: InitSudoku
-    pub fn from_sudoku(sudoku: Sudoku) -> Result<Self, Unsolvable> {
-        let mut solver = SudokuSolver {
-            poss_cells: UncheckedIndexArray27([ALL; 27]),
-            prev_poss_cells: UncheckedIndexArray27([0; 27]),
-            unsolved_cells: UncheckedIndexArray3([ALL; 3]),
-            requirement_for_weird_optimization: UncheckedIndexArray3([ALL; 3]),
-            pairs: UncheckedIndexArray3([0; 3]),
-        };
-        for (cell, num) in (0..81).zip(sudoku.iter()) {
-            if let Some(num) = num {
-                solver.insert_candidate(cell, num)?;
-            }
-        }
-        Ok(solver)
-    }
+pub(crate) trait Solver {
+    fn ensure_constraints(&mut self) -> Result<(), Unsolvable>;
+    fn find_naked_singles(&mut self) -> Result<bool, Unsolvable>;
+    fn is_solved(&self) -> bool;
+    fn guess_bivalue_in_cell(&mut self, limit: usize, solutions: &mut Solutions) -> Result<(), Unsolvable>;
+    fn guess_some_cell(&mut self, limit: usize, solutions: &mut Solutions);
+    fn extract_solution(&self) -> Sudoku;
 
     /// Find and return up to `limit` solutions
-    pub fn solutions_up_to(self, limit: usize) -> Vec<Sudoku> {
+    fn solutions_up_to(self, limit: usize) -> Vec<Sudoku>  where Self: Sized {
         let mut solutions = vec![];
         self._solutions_up_to(limit, &mut Solutions::Vector(&mut solutions));
         solutions
@@ -139,20 +133,20 @@ impl SudokuSolver {
 
     /// Count up to `limit` solutions and save up to buffer.len() of them
     /// in `buffer`. Returns number of solutions.
-    pub fn solutions_up_to_buffer(self, buffer: &mut [[u8; 81]], limit: usize) -> usize {
+    fn solutions_up_to_buffer(self, buffer: &mut [[u8; 81]], limit: usize) -> usize where Self: Sized{
         let mut solutions = Solutions::Buffer(buffer, 0);
         self._solutions_up_to(limit, &mut solutions);
         solutions.len()
     }
 
     /// Find up to `limit` solutions and return count
-    pub fn solutions_count_up_to(self, limit: usize) -> usize {
+    fn solutions_count_up_to(self, limit: usize) -> usize where Self:Sized{
         let mut solutions = Solutions::Count(0);
         self._solutions_up_to(limit, &mut solutions);
         solutions.len()
     }
 
-    fn _solutions_up_to(mut self, limit: usize, solutions: &mut Solutions) {
+    fn _solutions_up_to(mut self, limit: usize, solutions: &mut Solutions) where Self: Sized{
         if self.find_naked_singles().is_err() {
             return;
         }
@@ -164,9 +158,6 @@ impl SudokuSolver {
         self.guess(limit, solutions);
     }
 
-    pub(crate) fn is_solved(&self) -> bool {
-        self.unsolved_cells.0 == [NONE; 3]
-    }
 
     /// Repeatedly use the strategies and backtracking to find solutions until
     /// the limit is reached or no more solutions exist.
@@ -177,7 +168,7 @@ impl SudokuSolver {
             return Err(Unsolvable); // not really, but it forces a recursion stop
         }
         loop {
-            self.find_locked_candidates_and_update()?;
+            self.ensure_constraints()?;
             if self.is_solved() {
                 return Ok(());
             }
@@ -187,6 +178,36 @@ impl SudokuSolver {
             }
             return Ok(());
         }
+    }
+
+    // jczsolve equivalent: Guess
+    fn guess(&mut self, limit: usize, solutions: &mut Solutions) {
+        if self.is_solved() {
+            debug_assert!(solutions.len() < limit);
+            match solutions {
+                Solutions::Count(count) => *count += 1,
+                Solutions::Vector(vec) => vec.push(self.extract_solution()),
+                Solutions::Buffer(buf, len) => {
+                    if let Some(sudoku_slot) = buf.get_mut(*len) {
+                        *sudoku_slot = self.extract_solution().to_bytes();
+                    }
+                    *len += 1;
+                }
+            }
+        } else if self.guess_bivalue_in_cell(limit, solutions).is_ok() {
+            // .is_ok() == found nothing
+            self.guess_some_cell(limit, solutions);
+        }
+    }
+}
+
+impl Solver for SudokuSolver {
+    fn ensure_constraints(&mut self) -> Result<(), Unsolvable> {
+        self.find_locked_candidates_and_update()
+    }
+
+    fn is_solved(&self) -> bool {
+        self.unsolved_cells.0 == [NONE; 3]
     }
 
     /// Searches for cells that can contain only 1 digit and enter them.
@@ -238,6 +259,136 @@ impl SudokuSolver {
 
         Ok(single_applied)
     }
+
+    /// Extract the digits of a solved sudoku from the bitmasks of the solver.
+    // jczsolve equivalent: ExtractSolution
+    fn extract_solution(&self) -> Sudoku {
+        let mut sudoku = [0; 81];
+        for (subband, &mask) in (0..27).zip(self.poss_cells.0.iter()) {
+            let digit = subband / 3;
+            let base_cell_in_band = subband % 3 * 27;
+            for cell_mask in mask_iter(mask) {
+                let cell_in_band = bit_pos(cell_mask);
+                *index_mut(&mut sudoku, cell_in_band + base_cell_in_band) = digit as u8 + 1;
+            }
+        }
+        Sudoku(sudoku)
+    }
+
+    /// Find some cell with only 2 possible values and try both in order.
+    //
+    // Whenever a guess has to be taken, there is virtually always a cell
+    // with only 2 possibilities. These positions are found and saved when
+    // looking for naked singles.
+    // For that reason, finding such a cell is practically just a lookup.
+    fn guess_bivalue_in_cell(&mut self, limit: usize, solutions: &mut Solutions) -> Result<(), Unsolvable> {
+        for band in 0..3 {
+            // get first bivalue cell, if it exists
+            let cell_mask = match mask_iter(self.pairs[band]).next() {
+                Some(mask) => mask,
+                None => continue,
+            };
+            let mut subband = band;
+
+            // loop through all 9 digits and check if that digit is possible in
+            // the cell set in cell_mask. If so, try it.
+            let mut first = true;
+            loop {
+                debug_assert!(subband < 27);
+
+                if self.poss_cells[subband] & cell_mask != NONE {
+                    if first {
+                        first = false;
+                        let mut solver = *self;
+                        solver.insert_candidate_by_mask(subband, cell_mask);
+                        if solver._solve(limit, solutions).is_ok() {
+                            solver.guess(limit, solutions);
+                        }
+                        self.poss_cells[subband] ^= cell_mask;
+                    } else {
+                        self.insert_candidate_by_mask(subband, cell_mask);
+                        if self._solve(limit, solutions).is_ok() {
+                            self.guess(limit, solutions);
+                        }
+                        return Err(Unsolvable);
+                    }
+                }
+
+                subband += 3;
+            }
+        }
+        // no pairs found
+        Ok(())
+    }
+
+    /// Find an unsolved cell and attempt to solve sudoku with all remaining candidates.
+    //
+    // In the vast majority of cases, there is a cell with only 2 candidates,
+    // which means that guess_bivalue() will be called instead of this function.
+    // It comes up only with harder sudokus, typically early during the solving process.
+    // Finding a cell with fewer candidates is very valuable in those cases,
+    // but an exhaustive search is still too expensive.
+    // As a compromise, up to 3 cells are searched and the one with the fewest
+    // candidates is used.
+    // jczsolve_equivalent: GuessFirstCell, sort of
+    //                      jczsolve picks the first unsolved cell it can find
+    //                      This fn checks up to 3 cells as explained above
+    fn guess_some_cell(&mut self, limit: usize, solutions: &mut Solutions) {
+        let best_guess = (0..3)
+            .flat_map(|band| {
+                // get first unsolved cell, if it exists
+                let one_unsolved_cell = mask_iter(self.unsolved_cells[band]).next()?;
+                let n_candidates = (0..9)
+                    .map(|offset| band + 3 * offset)
+                    .filter(|&subband| self.poss_cells[subband] & one_unsolved_cell != NONE)
+                    .count();
+                Some((n_candidates, band, one_unsolved_cell))
+            })
+            .min();
+        let (_, band, unsolved_cell) = match best_guess {
+            Some(min) => min,
+            None => return,
+        };
+
+        let mut subband = band;
+        // check every digit
+        while subband < 27 {
+            if self.poss_cells[subband] & unsolved_cell != NONE {
+                let mut solver = *self;
+                solver.insert_candidate_by_mask(subband, unsolved_cell);
+                if solver._solve(limit, solutions).is_ok() {
+                    solver.guess(limit, solutions);
+                }
+                if solutions.len() == limit {
+                    return;
+                }
+                self.poss_cells[subband] ^= unsolved_cell;
+            }
+
+            subband += 3;
+        }
+    }
+}
+
+impl SudokuSolver {
+    // jczsolve equivalent: InitSudoku
+    pub fn from_sudoku(sudoku: Sudoku) -> Result<Self, Unsolvable> {
+        let mut solver = SudokuSolver {
+            poss_cells: UncheckedIndexArray27([ALL; 27]),
+            prev_poss_cells: UncheckedIndexArray27([0; 27]),
+            unsolved_cells: UncheckedIndexArray3([ALL; 3]),
+            requirement_for_weird_optimization: UncheckedIndexArray3([ALL; 3]),
+            pairs: UncheckedIndexArray3([0; 3]),
+        };
+        for (cell, num) in (0..81).zip(sudoku.iter()) {
+            if let Some(num) = num {
+                solver.insert_candidate(cell, num)?;
+            }
+        }
+        Ok(solver)
+    }
+
+
 
     /// Searches for minirows that must contain a digit because they are the only minirow
     /// in a row or block that still contains candidates and remove the candidates
@@ -339,119 +490,7 @@ impl SudokuSolver {
         Ok(())
     }
 
-    // jczsolve equivalent: Guess
-    fn guess(&mut self, limit: usize, solutions: &mut Solutions) {
-        if self.is_solved() {
-            debug_assert!(solutions.len() < limit);
-            match solutions {
-                Solutions::Count(count) => *count += 1,
-                Solutions::Vector(vec) => vec.push(self.extract_solution()),
-                Solutions::Buffer(buf, len) => {
-                    if let Some(sudoku_slot) = buf.get_mut(*len) {
-                        *sudoku_slot = self.extract_solution().to_bytes();
-                    }
-                    *len += 1;
-                }
-            }
-        } else if self.guess_bivalue_in_cell(limit, solutions).is_ok() {
-            // .is_ok() == found nothing
-            self.guess_some_cell(limit, solutions);
-        }
-    }
 
-    /// Find some cell with only 2 possible values and try both in order.
-    //
-    // Whenever a guess has to be taken, there is virtually always a cell
-    // with only 2 possibilities. These positions are found and saved when
-    // looking for naked singles.
-    // For that reason, finding such a cell is practically just a lookup.
-    fn guess_bivalue_in_cell(&mut self, limit: usize, solutions: &mut Solutions) -> Result<(), Unsolvable> {
-        for band in 0..3 {
-            // get first bivalue cell, if it exists
-            let cell_mask = match mask_iter(self.pairs[band]).next() {
-                Some(mask) => mask,
-                None => continue,
-            };
-            let mut subband = band;
-
-            // loop through all 9 digits and check if that digit is possible in
-            // the cell set in cell_mask. If so, try it.
-            let mut first = true;
-            loop {
-                debug_assert!(subband < 27);
-
-                if self.poss_cells[subband] & cell_mask != NONE {
-                    if first {
-                        first = false;
-                        let mut solver = *self;
-                        solver.insert_candidate_by_mask(subband, cell_mask);
-                        if solver._solve(limit, solutions).is_ok() {
-                            solver.guess(limit, solutions);
-                        }
-                        self.poss_cells[subband] ^= cell_mask;
-                    } else {
-                        self.insert_candidate_by_mask(subband, cell_mask);
-                        if self._solve(limit, solutions).is_ok() {
-                            self.guess(limit, solutions);
-                        }
-                        return Err(Unsolvable);
-                    }
-                }
-
-                subband += 3;
-            }
-        }
-        // no pairs found
-        Ok(())
-    }
-
-    /// Find an unsolved cell and attempt to solve sudoku with all remaining candidates.
-    //
-    // In the vast majority of cases, there is a cell with only 2 candidates,
-    // which means that guess_bivalue() will be called instead of this function.
-    // It comes up only with harder sudokus, typically early during the solving process.
-    // Finding a cell with fewer candidates is very valuable in those cases,
-    // but an exhaustive search is still too expensive.
-    // As a compromise, up to 3 cells are searched and the one with the fewest
-    // candidates is used.
-    // jczsolve_equivalent: GuessFirstCell, sort of
-    //                      jczsolve picks the first unsolved cell it can find
-    //                      This fn checks up to 3 cells as explained above
-    fn guess_some_cell(&mut self, limit: usize, solutions: &mut Solutions) {
-        let best_guess = (0..3)
-            .flat_map(|band| {
-                // get first unsolved cell, if it exists
-                let one_unsolved_cell = mask_iter(self.unsolved_cells[band]).next()?;
-                let n_candidates = (0..9)
-                    .map(|offset| band + 3 * offset)
-                    .filter(|&subband| self.poss_cells[subband] & one_unsolved_cell != NONE)
-                    .count();
-                Some((n_candidates, band, one_unsolved_cell))
-            })
-            .min();
-        let (_, band, unsolved_cell) = match best_guess {
-            Some(min) => min,
-            None => return,
-        };
-
-        let mut subband = band;
-        // check every digit
-        while subband < 27 {
-            if self.poss_cells[subband] & unsolved_cell != NONE {
-                let mut solver = *self;
-                solver.insert_candidate_by_mask(subband, unsolved_cell);
-                if solver._solve(limit, solutions).is_ok() {
-                    solver.guess(limit, solutions);
-                }
-                if solutions.len() == limit {
-                    return;
-                }
-                self.poss_cells[subband] ^= unsolved_cell;
-            }
-
-            subband += 3;
-        }
-    }
 
     /// Insert a candidate by cell and digit.
     /// Removes all conflicting candidates.
@@ -511,20 +550,6 @@ impl SudokuSolver {
         self.poss_cells[subband] &= nonconflicting_cells_same_band(cell);
     }
 
-    /// Extract the digits of a solved sudoku from the bitmasks of the solver.
-    // jczsolve equivalent: ExtractSolution
-    fn extract_solution(&self) -> Sudoku {
-        let mut sudoku = [0; 81];
-        for (subband, &mask) in (0..27).zip(self.poss_cells.0.iter()) {
-            let digit = subband / 3;
-            let base_cell_in_band = subband % 3 * 27;
-            for cell_mask in mask_iter(mask) {
-                let cell_in_band = bit_pos(cell_mask);
-                *index_mut(&mut sudoku, cell_in_band + base_cell_in_band) = digit as u8 + 1;
-            }
-        }
-        Sudoku(sudoku)
-    }
 }
 
 // ----------------------------------------------------------------
@@ -914,9 +939,9 @@ static COLUMN_SINGLE: [u32; 512] = [
 ];
 
 #[derive(Clone, Copy)]
-struct UncheckedIndexArray3([u32; 3]);
+pub(crate) struct UncheckedIndexArray3([u32; 3]);
 #[derive(Clone, Copy)]
-struct UncheckedIndexArray27([u32; 27]);
+pub(crate) struct UncheckedIndexArray27([u32; 27]);
 
 impl std::ops::Index<usize> for UncheckedIndexArray3 {
     type Output = u32;
@@ -945,7 +970,7 @@ impl std::ops::IndexMut<usize> for UncheckedIndexArray27 {
 }
 
 // for each set bit in mask, return a mask with only that bit set
-fn mask_iter(mask: u32) -> impl Iterator<Item = u32> {
+pub fn mask_iter(mask: u32) -> impl Iterator<Item = u32> {
     std::iter::repeat(()).scan(mask, |mask, ()| {
         if *mask == 0 {
             return None;

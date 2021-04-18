@@ -3,7 +3,7 @@ use rand::seq::SliceRandom;
 use crate::consts::*;
 use crate::generator::SudokuGenerator;
 use crate::parse_errors::{BlockParseError, InvalidEntry, LineParseError, NotEnoughRows};
-use crate::solver::SudokuSolver;
+use crate::solver::{SudokuSolver, Solver};
 
 #[cfg(feature = "serde")]
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};

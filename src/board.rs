@@ -6,6 +6,7 @@ mod digit;
 mod grid_state;
 pub mod positions;
 mod sudoku;
+mod variant;
 
 pub(crate) use self::positions::*;
 
@@ -18,4 +19,5 @@ pub use self::{
     candidate::Candidate,
     cell_state::CellState,
     grid_state::GridState,
+    variant::Variant,
 };
