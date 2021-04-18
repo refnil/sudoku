@@ -1,6 +1,8 @@
 {
   "scripts": {
-    "serve": "webpack-dev-server"
+    "serve": "webpack-dev-server",
+    "build": "webpack",
+    "build-prod": "webpack --config webpack.config.production.js"
   },
   "dependencies": {
     "sudoku": "file:../pkg"
