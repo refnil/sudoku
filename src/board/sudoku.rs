@@ -13,7 +13,7 @@ use std::{
 };
 
 /// The 9x9 sudoku board represented as an array of length 81
-type SudokuArray = [u8; N_CELLS];
+pub type SudokuArray = [u8; N_CELLS];
 
 /// The main structure exposing all the functionality of the library
 ///

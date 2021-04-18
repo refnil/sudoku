@@ -6,7 +6,7 @@ mod digit;
 mod grid_state;
 pub mod positions;
 mod sudoku;
-mod variant;
+pub mod variant;
 
 pub(crate) use self::positions::*;
 

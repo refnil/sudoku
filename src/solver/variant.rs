@@ -94,6 +94,44 @@ impl VariantSolver {
     }
 
     fn check_diag_pos(&mut self) -> Result<(), Unsolvable> {
+        let mut mask = 0;
+        // for each case in diag
+        let mut band_mask: [u32; 3] = [0; 3]; 
+        for i in 0..9 {
+            let pos = (8-i) + i * 9;
+            println!("pos {}", pos);
+            let band = pos / 27;
+            let subband = pos % 27;
+
+            let is_number = (self.base.unsolved_cells[band] & 1 << subband) == 0;
+
+            if is_number {
+                // for each number in cases
+                for n in 0..9 {
+                    if (self.base.poss_cells[band + n * 3] & 1 << subband) != 0 {
+                        mask |= 1 << n;
+                        break;
+                    }
+                }
+            }
+            else {
+                band_mask[band] |= 1 << subband;
+            }
+        }
+        
+        for number in 0..9 {
+            if (mask & 1 << number) != 0 {
+                for mband in 0..3 {
+                    if band_mask[mband] == 0 {
+                        continue;
+                    }
+                    let band = mband + number * 3;
+                    let mask = !band_mask[mband];
+                    self.base.poss_cells[band] &= mask;
+                }
+            }
+        }
+
         Ok(())
     }
 }

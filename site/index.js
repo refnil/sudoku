@@ -5,7 +5,12 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var app_mode = 'setter'
   var app_mode_text = document.getElementById('app_mode')
   var selected = new Set()
+  var input = document.getElementById('save');
   var line = '..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..';
+  var diag_pos = false;
+  var diag_pos_text = document.getElementById('diag_pos');
+  var diag_neg = false;
+  var diag_neg_text = document.getElementById('diag_neg');
 
   function getElementsByXPath(xpath)
   {
@@ -58,6 +63,17 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     document.addEventListener('mouseup', () => is_mouse_down = false)
   }
 
+  function init_ui() {
+    init_button();
+    init_cells();
+
+    input.addEventListener('input', (event) => {
+      if (input.value != get_current_line()) {
+        set_line(input.value);
+      }
+    })
+  }
+
   function init_button() {
     solve = getElementsByXPath('//button[@id="solve"]')[0];
     solve.onclick = solve_current;
@@ -69,6 +85,29 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     reset_button.onclick = reset;
     app_mode_button = document.getElementById("app_mode_button");
     app_mode_button.onclick = change_mode;
+
+    diag_pos_button = document.getElementById("diag_pos_button");
+    diag_pos_button.onclick = (event) => {
+      diag_pos = !diag_pos;
+      update_text_on_off(diag_pos, diag_pos_text);
+      update_solution_count();
+    }
+
+    diag_neg_button = document.getElementById("diag_neg_button");
+    diag_neg_button.onclick = (event) => {
+      diag_neg = !diag_neg;
+      update_text_on_off(diag_neg, diag_neg_text);
+      update_solution_count();
+    }
+  }
+
+  function update_text_on_off(value, text_ref) {
+    if (value) {
+      text_ref.innerHTML = "On";
+    }
+    else {
+      text_ref.innerHTML = "Off";
+    }
   }
 
   function init_keyboard() {
@@ -143,6 +182,12 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         line += cells[i].innerHTML;
       }
     }
+    if (diag_pos) {
+      line += ";diag_pos";
+    }
+    if (diag_neg) {
+      line += ";diag_neg";
+    }
     return line
   }
 
@@ -151,17 +196,22 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     solution_count.innerHTML = js.solution_count(get_current_line())
     var t1 = performance.now()
     console.log("solution count timing: ", t1-t0)
+    if (input !== document.activeElement) {
+      input.value = get_current_line();
+    }
   }
 
   function solve_current(){
-    var res = js.solve(get_current_line())
+    var res = js.solve_common(get_current_line())
     if (res.length != 81){
       return
     }
     for(i = 0; i < 81; i++){
-      cells[i].innerHTML = res[i];
-      if(!cells[i].classList.contains('clue')){
-        cells[i].classList.add('other')
+      if(res[i] != ".") {
+        cells[i].innerHTML = res[i];
+        if(!cells[i].classList.contains('clue')){
+          cells[i].classList.add('other')
+        }
       }
     }
   }
@@ -175,7 +225,10 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       cells[i].classList.remove('clue')
       cells[i].classList.remove('other')
 
-      if(line[i] != '.'){
+      if(line[i] == undefined) {
+        cells[i].innerHTML = '';
+      }
+      else if(line[i] != '.'){
         cells[i].innerHTML = line[i]
         cells[i].classList.add('clue')
       }
@@ -188,8 +241,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   js.init()
-  init_cells()
-  init_button()
+  init_ui()
   init_keyboard()
   set_line(line)
 });

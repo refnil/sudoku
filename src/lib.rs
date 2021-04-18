@@ -57,6 +57,7 @@ use console_error_panic_hook;
 
 pub use crate::board::Sudoku;
 pub use crate::board::Symmetry;
+use crate::board::variant::Variant;
 
 #[wasm_bindgen]
 pub fn init(){
@@ -70,13 +71,38 @@ pub fn greet(name: &str){
 
 #[wasm_bindgen]
 pub fn solve(sudoku: &str) -> String {
-    let s = Sudoku::from_str_line(sudoku).unwrap();
+    let s = Variant::from_str_line(sudoku).unwrap();
     if let Some(solved) = s.solution() {
         let line: &str = &solved.to_str_line();
         return String::from(line);
     }
     else{
         return String::new()
+    }
+}
+
+#[wasm_bindgen]
+pub fn solve_common(sudoku: &str) -> String {
+    let s = Variant::from_str_line(sudoku).unwrap();
+    let vec = s.solutions_up_to(1000);
+    if vec.len() == 1000 {
+       String::new() 
+    }
+    else if let Some((Sudoku(v), vs)) = vec.split_first() {
+        let mut res: [u8; 81] = v.clone();
+        for Sudoku(v) in vec {
+            for i in 0..81 {
+                if res[i] != v[i] {
+                    res[i] = 0;
+                }
+            }
+        }
+
+        let line: &str = &Sudoku::from_bytes(res).unwrap().to_str_line();
+        String::from(line)
+    }
+    else {
+        String::new()
     }
 }
 
@@ -89,6 +115,6 @@ pub fn generate() -> String {
 
 #[wasm_bindgen]
 pub fn solution_count(sudoku: &str) -> usize {
-    let s = Sudoku::from_str_line(sudoku).unwrap();
+    let s = Variant::from_str_line(sudoku).unwrap();
     s.solutions_count_up_to(1000)
 }
