@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>hello-wasm example</title>
+    <link rel="stylesheet" href="index.css"/>
+  </head>
+  <body>
+    <div class="sudoku-container">
+    <div class="sudoku">
+    <ul>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+      <li><span></span></li>
+    </ul>
+      <div id='diag_pos_vis'></div>
+      <div id='diag_neg_vis'></div>
+    </div>
+    </div>
+    <p>
+    <button id='new'>Generate soduku</button>
+    <button id='app_mode_button'>Mode: <span id='app_mode'>setter</span></button>
+    <button id='reset'>Reset grid</button>
+    <button id='clear'>Clear progress</button>
+    <button id='solve'>Solve</button>
+    </p>
+    <p>
+    <button id='diag_pos_button'>Diagonal +: <span id='diag_pos'>Off</span></button>
+    <button id='diag_neg_button'>Diagonal -: <span id='diag_neg'>Off</span></button>
+    </p>
+    <p><input id="save"/></p>
+    <p>Solution count: <span id='count'></span></p>
+    <script src="./index.js"></script>
+  </body>
+</html>
