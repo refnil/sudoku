@@ -128,23 +128,25 @@ mod tests {
 
     #[test]
     fn solve_common_does_not_remove_solution() {
-        fn check_diag(line: &str) {
-            let init = &(String::from(line) + ";diag_pos;diag_neg");
+        fn check(line: &str, variant: &str){
+            let init = &(String::from(line) + variant);
             let res = solve_common(init);
             println!("{}", line);
             println!("{}", res);
             assert_ne!(res, String::new());
-            let res_full = &(res + ";diag_pos;diag_neg");
+            let res_full = &(res + variant);
             let count_init = solution_count(init);
             let count_res = solution_count(res_full);
             assert!(count_init < 1000);
             assert!(count_res < 1000);
             assert_eq!(count_init, count_res, "solve_common remove solution on line\n{}", line);
         }
+        fn check_diag(line: &str) {
+            check(line, ";diag_pos;diag_neg")
+        }
         check_diag("........3..2..65..9.........................8....4.7.2.8.36...5.....14...9...8...");
         check_diag(".1.4....33...8.5.9.......1......1..........8..........5...1........2.9...4.5.7...");
         check_diag("......7..7.2.1.......26..9...4.........9...2483.............8............6...4.79");
         check_diag("9..83.45....4..2.9.54........9..4.3.43.9....2..1...94...2....9..9......4.......2.");
-
     }
 }

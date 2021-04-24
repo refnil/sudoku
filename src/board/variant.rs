@@ -1,5 +1,6 @@
 use crate::*;
 use crate::solver::*;
+use crate::board::sudoku::{SudokuBlock};
 use crate::solver::variant::*;
 use crate::parse_errors::{InvalidEntry, LineParseError};
 
@@ -7,6 +8,7 @@ pub struct Variant {
     pub base: Sudoku,
     pub diag_pos: bool,
     pub diag_neg: bool,
+    pub king: bool,
 }
 
 impl Variant {
@@ -15,6 +17,7 @@ impl Variant {
             base: sudoku,
             diag_pos: false,
             diag_neg: false,
+            king: false,
         }
     }
 
@@ -33,6 +36,9 @@ impl Variant {
         }
         else if s.starts_with("diag_neg") {
             self.diag_neg = true
+        }
+        else if s.starts_with("king") {
+            self.king = true
         }
     }
 
@@ -55,6 +61,10 @@ impl Variant {
             true => Some(solutions[0]),
             false => None,
         }
+    }
+
+    pub fn display_block(&self) -> SudokuBlock {
+        self.base.display_block()
     }
 }
 
@@ -88,9 +98,30 @@ mod test {
     }
 
     #[test]
+    fn test_king() {
+        fn not_ok(line: &str) {
+            let init = &(String::from(line) + ";king");
+            let v = Variant::from_str_line(init).unwrap();
+            println!("{}", v.display_block());
+            assert_eq!(v.solutions_count_up_to(1), 0);
+        }
+        not_ok("..1.........1....................................................................");
+        not_ok("......7.....1.7..................................................................");
+        not_ok("......................3.........3................................................");
+    }
+
+    #[test]
     fn test_empty_is_possible() {
-        let line = ".................................................................................;diag_pos;diag_neg";
-        let s = Variant::from_str_line(line);
-        assert!(s.is_ok());
+        fn ok_with_variant(variant: &str) {
+            println!("Variant: {}", variant);
+            let line = String::from(".................................................................................");
+            let s = Variant::from_str_line(&(line + ";" + variant));
+            assert!(s.is_ok());
+            assert_eq!(s.unwrap().solutions_count_up_to(4), 4);
+        }
+        ok_with_variant("diag_neg");
+        ok_with_variant("diag_pos");
+        ok_with_variant("diag_pos;diag_neg");
+        ok_with_variant("king");
     }
 }

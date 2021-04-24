@@ -13,6 +13,8 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var diag_neg = false;
   var diag_neg_text = document.getElementById('diag_neg');
   var diag_neg_vis = document.getElementById('diag_neg_vis')
+  var king = false;
+  var king_text = document.getElementById('king');
 
   function getElementsByXPath(xpath)
   {
@@ -113,6 +115,14 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       }
       update_solution_count();
     }
+
+    king_button = document.getElementById("king_button");
+    king_button.onclick = (event) => {
+      king = !king;
+      update_text_on_off(king, king_text);
+      update_solution_count();
+    };
+
   }
 
   function update_text_on_off(value, text_ref) {
@@ -201,6 +211,9 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     }
     if (diag_neg) {
       line += ";diag_neg";
+    }
+    if (king) {
+      line += ";king";
     }
     return line
   }
