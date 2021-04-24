@@ -43,6 +43,7 @@ impl VariantSolver {
             diag_neg: variant.diag_neg,
         };
         if !solver.is_ok_variants() {
+            println!("Invalid from parse");
             Err(Unsolvable)
         } else {
             Ok(solver)

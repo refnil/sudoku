@@ -83,14 +83,16 @@ pub fn solve(sudoku: &str) -> String {
 
 #[wasm_bindgen]
 pub fn solve_common(sudoku: &str) -> String {
+    // greet(&format!("solve_common: {}", sudoku));
     let s = Variant::from_str_line(sudoku).unwrap();
     let vec = s.solutions_up_to(1000);
     if vec.len() == 1000 {
+       println!("Too many solution");
        String::new() 
     }
-    else if let Some((Sudoku(v), vs)) = vec.split_first() {
-        let mut res: [u8; 81] = v.clone();
-        for Sudoku(v) in vec {
+    else if let Some((Sudoku(f), vs)) = vec.split_first() {
+        let mut res: [u8; 81] = f.clone();
+        for Sudoku(v) in vs {
             for i in 0..81 {
                 if res[i] != v[i] {
                     res[i] = 0;
@@ -102,6 +104,7 @@ pub fn solve_common(sudoku: &str) -> String {
         String::from(line)
     }
     else {
+        println!("No solution");
         String::new()
     }
 }
@@ -117,4 +120,31 @@ pub fn generate() -> String {
 pub fn solution_count(sudoku: &str) -> usize {
     let s = Variant::from_str_line(sudoku).unwrap();
     s.solutions_count_up_to(1000)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn solve_common_does_not_remove_solution() {
+        fn check_diag(line: &str) {
+            let init = &(String::from(line) + ";diag_pos;diag_neg");
+            let res = solve_common(init);
+            println!("{}", line);
+            println!("{}", res);
+            assert_ne!(res, String::new());
+            let res_full = &(res + ";diag_pos;diag_neg");
+            let count_init = solution_count(init);
+            let count_res = solution_count(res_full);
+            assert!(count_init < 1000);
+            assert!(count_res < 1000);
+            assert_eq!(count_init, count_res, "solve_common remove solution on line\n{}", line);
+        }
+        check_diag("........3..2.765..9.7...............5.......8....4.732.8.36...5.....14...9..58...");
+        check_diag(".1.4....33...8.5.9..5....1...4..1..........8.2.9......5...1........2.9...4.5.7..8");
+        check_diag("......7..7.2.1.......26..9...4.........9...2483.............8....7.......65..4.79");
+        check_diag("9..83..5....4..2.9.5..............3.43.9....2..1.......1...7...8...6...4....5.92.");
+
+    }
 }

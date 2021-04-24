@@ -56,7 +56,6 @@ impl Variant {
             false => None,
         }
     }
-
 }
 
 #[cfg(test)]
