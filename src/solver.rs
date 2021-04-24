@@ -194,12 +194,13 @@ pub(crate) trait Solver {
         }
         loop {
             self.ensure_constraints()?;
-            if self.is_solved() {
-                return Ok(());
-            }
             // if singles found, go again
             if self.find_naked_singles()? {
                 continue;
+            }
+
+            if self.is_solved() {
+                return Ok(());
             }
             return Ok(());
         }
