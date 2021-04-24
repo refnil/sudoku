@@ -1,7 +1,8 @@
 use crate::board::{Sudoku, Variant};
 use crate::helper::Unsolvable;
-use crate::solver::{mask_iter, Solutions, Solver, SudokuSolver};
+use crate::solver::{mask_iter, Solutions, Solver, SudokuSolver, Guess};
 
+#[derive(Clone,Copy)]
 pub(crate) struct VariantSolver {
     base: SudokuSolver,
     // direction: bool,
@@ -20,18 +21,29 @@ impl Solver for VariantSolver {
     }
 
     fn is_solved(&self) -> bool {
-        self.base.is_solved() && self.is_ok_variants()
+        let res = self.base.is_solved() && self.is_ok_variants();
+        res
     }
-    fn guess_bivalue_in_cell(&mut self, limit: usize, solutions: &mut Solutions) -> Result<(), Unsolvable> {
-        self.base.guess_bivalue_in_cell(limit, solutions)
+    fn guess_bivalue_in_cell(&self) -> Option<Vec<Guess>> {
+        self.base.guess_bivalue_in_cell()
     }
 
-    fn guess_some_cell(&mut self, limit: usize, solutions: &mut Solutions) {
-        self.base.guess_some_cell(limit, solutions)
+    fn guess_some_cell(&self) -> Vec<Guess> {
+        self.base.guess_some_cell()
     }
 
     fn extract_solution(&self) -> Sudoku {
-        self.base.extract_solution()
+        let res = self.base.extract_solution();
+        println!("Extracting solution: {}", res);
+        res
+    }
+
+    fn insert_candidate_by_mask(&mut self, guess: &Guess){
+        self.base.insert_candidate_by_mask(guess)
+    }
+
+    fn remove_candidate_by_mask(&mut self, guess: &Guess){
+        self.base.remove_candidate_by_mask(guess)
     }
 }
 
@@ -78,7 +90,7 @@ impl VariantSolver {
                 for n in 0..9 {
                     if (self.base.poss_cells[band + n * 3] & 1 << subband) != 0 {
                         let new_mask = mask | 1 << n;
-                        println!("Found a {}, {} {}", (n + 1), new_mask, mask);
+                        // println!("Found a {}, {} {}", (n + 1), new_mask, mask);
                         if new_mask == mask {
                             return false;
                         }
@@ -105,7 +117,7 @@ impl VariantSolver {
                 for n in 0..9 {
                     if (self.base.poss_cells[band + n * 3] & (1 << subband)) != 0 {
                         let new_mask = mask | 1 << n;
-                        println!("Found a {}, {} {}", (n + 1), new_mask, mask);
+                        // println!("Found a {}, {} {}", (n + 1), new_mask, mask);
                         if new_mask == mask {
                             return false;
                         }
