@@ -73,7 +73,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
 
     input.addEventListener('input', (event) => {
       if (input.value != get_current_line()) {
-        set_line(input.value);
+        set_line(input.value, "clue");
       }
     })
   }
@@ -83,6 +83,8 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     solve.onclick = solve_current;
     new_sudoku = getElementsByXPath('//button[@id="new"]')[0];
     new_sudoku.onclick = generate_new;
+    cc_button = document.getElementById("clear_computer");
+    cc_button.onclick = clear_computer;
     clear_button = document.getElementById("clear");
     clear_button.onclick = clear;
     reset_button = document.getElementById("reset");
@@ -137,11 +139,11 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   function init_keyboard() {
     document.addEventListener('keydown', (event) => {
       var key = parseInt(event.key)
+      var current_kind = app_mode == 'setter' ? 'clue' : 'human';
       if (Number.isInteger(key) && key >= 1 && key <= 9){
         for (let cell_id of selected) {
           if (can_change(cell_id)) {
-            cells[cell_id].innerHTML = key
-            cells[cell_id].className = app_mode == 'setter' ? 'clue' : 'other'
+            set_cell(cell_id, key, current_kind);
           }
         }
         update_solution_count()
@@ -149,8 +151,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       else if (event.key == "Delete" || event.key == "Backspace"){
         for (let cell_id of selected) {
           if (can_change(cell_id)) {
-            cells[cell_id].innerHTML = ""
-            cells[cell_id].className = ""
+            set_cell(cell_id, '', current_kind);
           }
         }
         update_solution_count()
@@ -178,19 +179,23 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     app_mode_text.innerHTML = app_mode
   }
 
+  function clear_computer(){
+    for(i = 0; i < cells.length; i++){
+      set_cell(i, '', "computer");
+    }
+    update_solution_count()
+  }
+
   function clear() {
     for(i = 0; i < cells.length; i++){
-      if(cells[i].classList.contains('other')){
-        cells[i].innerHTML = ""
-      }
+      set_cell(i, '', "human");
     }
     update_solution_count()
   }
 
   function reset() {
     for(i = 0; i < cells.length; i++){
-      cells[i].innerHTML = ""
-      cells[i].className = ""
+      set_cell(i, '', "clue");
     }
     update_solution_count()
   }
@@ -233,43 +238,62 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     if (res.length != 81){
       return
     }
-    for(i = 0; i < 81; i++){
-      if(res[i] != ".") {
-        cells[i].innerHTML = res[i];
-        if(!cells[i].classList.contains('clue')){
-          cells[i].classList.add('other')
-        }
-      }
-    }
+    set_line(res, "computer");
     update_solution_count();
   }
 
   function generate_new() {
-    set_line(js.generate())
+    set_line(js.generate(), "clue")
   }
 
-  function set_line(line){
+  function set_line(line, kind = "human"){
     for(i = 0; i < 81; i++){
-      cells[i].classList.remove('clue')
-      cells[i].classList.remove('other')
-
-      if(line[i] == undefined) {
-        cells[i].innerHTML = '';
+      var value = line[i];
+      if(value === undefined || value === '.') {
+        value = '';
       }
-      else if(line[i] != '.'){
-        cells[i].innerHTML = line[i]
-        cells[i].classList.add('clue')
-      }
-      else {
-        cells[i].innerHTML = ""
-        cells[i].classList.add('other')
-      }
+      set_cell(i, value, kind);
     }
     update_solution_count()
+  }
+
+  function set_cell(id, value = '', kind = "human") {
+    // kind can be "clue", "human", "computer"
+    cell = cells[id];
+    cl = cell.classList;
+    switch(kind){
+      case "clue":
+        cl.remove("human", "computer");
+        break;
+      case "human":
+        if (!cl.contains("clue")) {
+          cl.remove("computer");
+          break;
+        }
+        else {
+          return;
+        }
+      case "computer":
+        if (!cl.contains("clue") && !cl.contains("human")) {
+          break;
+        }
+        else {
+          return;
+        }
+      default:
+        console.error("UNKNOWN KIND: ", kind);
+    }
+    cell.innerHTML = value;
+    if (value == '') {
+      cl.remove("clue", "human", "computer");
+    }
+    else {
+      cl.add(kind);
+    }
   }
 
   js.init()
   init_ui()
   init_keyboard()
-  set_line(line)
+  set_line(line, "clue");
 });
