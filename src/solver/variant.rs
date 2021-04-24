@@ -211,8 +211,8 @@ impl VariantSolver {
 
     fn is_ok_king(&self) -> bool {
         fn compare_line(mut line1: u32, mut line2: u32) -> bool {
-            line1 &= 1023;
-            line2 &= 1023;
+            line1 &= 511;
+            line2 &= 511;
             return ((line1 & (line2 << 1)) | (line1 & (line2 >> 1))) != 0;
         }
         for number in 0..9 {
@@ -258,9 +258,9 @@ impl VariantSolver {
 
     fn check_king(&mut self) -> Result<(), Unsolvable> {
         fn get_mask(mask_offset: u32, mut other_line: u32) -> u32{
-            other_line &= 1023;
+            other_line &= 511;
 
-            let invalid_value = (other_line >> 1) | (other_line << 1);
+            let invalid_value = ((other_line >> 1) | (other_line << 1)) & 511;
             return (!0) ^ ((invalid_value) << mask_offset);
         }
 

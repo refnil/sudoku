@@ -102,9 +102,18 @@ mod test {
         fn not_ok(line: &str) {
             let init = &(String::from(line) + ";king");
             let v = Variant::from_str_line(init).unwrap();
-            println!("{}", v.display_block());
+            // println!("{}", v.display_block());
             assert_eq!(v.solutions_count_up_to(1), 0);
         }
+        fn ok(line: &str) {
+            let init = &(String::from(line) + ";king");
+            let v = Variant::from_str_line(init).unwrap();
+            // println!("{}", v.display_block());
+            assert_eq!(v.solutions_count_up_to(2), 1);
+        }
+
+        ok("438612579972458316615379428524183697196247835387596241769834152841725963253961784");
+        ok("4..6.2.7....45...6.....9......183......2......87...2..76.8.....8...25...25..6....");
         not_ok("..1.........1....................................................................");
         not_ok("......7.....1.7..................................................................");
         not_ok("......................3.........3................................................");

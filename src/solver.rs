@@ -162,6 +162,11 @@ pub(crate) trait Solver {
             return
         };
 
+        if self.is_solved() {
+            self.guess(limit, solutions);
+            return;
+        }
+
         // either solved or impossible
         if self._solve(limit, solutions).is_err() {
             return;
