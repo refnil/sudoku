@@ -6,7 +6,6 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var app_mode_text = document.getElementById('app_mode')
   var selected = new Set()
   var input = document.getElementById('save');
-  var line = '..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..';
   var diag_pos = false;
   var diag_pos_text = document.getElementById('diag_pos');
   var diag_pos_vis = document.getElementById('diag_pos_vis')
@@ -73,8 +72,9 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
 
     input.addEventListener('input', (event) => {
       if (input.value != get_current_line()) {
-        set_line(input.value, "clue");
+        load_data(input.value);
       }
+      update_url();
     })
   }
 
@@ -95,6 +95,26 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     diag_pos_button = document.getElementById("diag_pos_button");
     diag_pos_button.onclick = (event) => {
       diag_pos = !diag_pos;
+      update_variant_visual();
+      update_solution_count();
+    }
+
+    diag_neg_button = document.getElementById("diag_neg_button");
+    diag_neg_button.onclick = (event) => {
+      diag_neg = !diag_neg;
+      update_variant_visual();
+      update_solution_count();
+    }
+
+    king_button = document.getElementById("king_button");
+    king_button.onclick = (event) => {
+      king = !king;
+      update_variant_visual();
+      update_solution_count();
+    };
+  }
+
+  function update_variant_visual(){
       update_text_on_off(diag_pos, diag_pos_text);
       if (diag_pos) {
         diag_pos_vis.classList.add('diag', 'diag-pos');
@@ -102,12 +122,6 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       else {
         diag_pos_vis.classList.remove('diag-pos');
       }
-      update_solution_count();
-    }
-
-    diag_neg_button = document.getElementById("diag_neg_button");
-    diag_neg_button.onclick = (event) => {
-      diag_neg = !diag_neg;
       update_text_on_off(diag_neg, diag_neg_text);
       if (diag_neg) {
         diag_neg_vis.classList.add('diag', 'diag-neg');
@@ -115,16 +129,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       else {
         diag_neg_vis.classList.remove('diag-neg');
       }
-      update_solution_count();
-    }
-
-    king_button = document.getElementById("king_button");
-    king_button.onclick = (event) => {
-      king = !king;
       update_text_on_off(king, king_text);
-      update_solution_count();
-    };
-
   }
 
   function update_text_on_off(value, text_ref) {
@@ -200,17 +205,23 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     update_solution_count()
   }
 
-  function get_current_line() {
+  function get_line_with(selector){
     line = ""
     for(i = 0; i < 81; i++){
-      var c = cells[i].innerHTML;
-      if(c == ''){
-        line += '.';
-      }
-      else{
+      var cell = cells[i];
+      var content = cells[i].innerHTML;
+      if(selector(cell, content)){
         line += cells[i].innerHTML;
       }
+      else{
+        line += '.';
+      }
     }
+    return line;
+  }
+
+  function get_variant() {
+    line = ""
     if (diag_pos) {
       line += ";diag_pos";
     }
@@ -220,7 +231,43 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     if (king) {
       line += ";king";
     }
-    return line
+    return line;
+  }
+
+  function get_current_line() {
+    return get_line_with((cell, content) => content != '') + get_variant()
+  }
+
+  function get_save_data() {
+    var clue = ";clue" + get_line_with((cell) => cell.classList.contains("clue"));
+    var human = ";human" + get_line_with((cell) => cell.classList.contains("human"));
+
+    return clue + human + get_variant()
+  }
+
+  function load_data(data) {
+    diag_pos = false;
+    diag_neg = false;
+    king = false;
+    data.split(';').forEach((field) => {
+      if (field.startsWith('clue')){
+        set_line(field.slice(4), "clue");
+      }
+      else if(field.startsWith('human')){
+        set_line(field.slice(5), "human");
+      }
+      else if(field.startsWith('diag_pos')){
+        diag_pos = true;
+      }
+      else if(field.startsWith('diag_neg')){
+        diag_neg = true;
+      }
+      else if(field.startsWith('king')){
+        king = true;
+      }
+    });
+    update_variant_visual();
+    update_solution_count();
   }
 
   function update_solution_count() {
@@ -228,9 +275,21 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     solution_count.innerHTML = js.solution_count(get_current_line())
     var t1 = performance.now()
     console.log("solution count timing: ", t1-t0)
+    save_data = get_save_data()
     if (input !== document.activeElement) {
-      input.value = get_current_line();
+      input.value = save_data;
     }
+    update_url();
+  }
+
+  function get_url(){
+    full_url = window.location.href;
+    return full_url.split('?')[0];
+  }
+
+  function update_url(){
+    new_url = get_url() + '?save=' + save_data
+    window.history.replaceState({}, '', new_url);
   }
 
   function solve_current(){
@@ -295,5 +354,8 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   js.init()
   init_ui()
   init_keyboard()
-  set_line(line, "clue");
+  var save = new URLSearchParams(window.location.search).get('save');
+  if (save != null){
+    load_data(save);
+  }
 });
