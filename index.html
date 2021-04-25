@@ -3,10 +3,37 @@
   <head>
     <meta charset="utf-8">
     <title>Sudoku</title>
+    <link rel="stylesheet" href="node_modules/water.css/out/light.css"/>
     <link rel="stylesheet" href="index.css"/>
   </head>
   <body>
+    <center><h1>Sudoku</h1></center>
     <div class="sudoku-container">
+      <div id="setter-side" class="sudoku-side">
+        <h2>Setter menu</h2>
+        <button id='reset'>New grid</button>
+        <h3>Computational operation</h3>
+        <p>
+        <button id='new'>Generate random soduku</button>
+        <button id='solve'>Solve</button>
+        <button id='clear_computer'>Clear computer hint</button>
+        </p>
+        <p>Solution count: <span id='count'></span></p>
+        <h3>Constraints</h3>
+        <p>
+        <button id='diag_pos_button'>Diagonal +</button>
+        <button id='diag_neg_button'>Diagonal -</button>
+        <button id='king_button'>King move</button>
+        </p>
+        <h3>Sharing</h3>
+        <p><a id="setting_url">Setting url</a></p>
+        <p><a id="solving_url">Solving url</a></p>
+        <h3>Other</h3>
+        <details>
+          <summary>Manual edit</summary>
+          <textarea id="save"></textarea>
+        </details>
+      </div>
     <div class="sudoku">
     <ul>
       <li><span></span></li>
@@ -94,22 +121,56 @@
       <div id='diag_pos_vis'></div>
       <div id='diag_neg_vis'></div>
     </div>
+    <div class="sudoku-side right-container">
+      <div class="keyboard-container">
+      <div id="number" class="keyboard">
+        <button>1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>4</button>
+        <button>5</button>
+        <button>6</button>
+        <button>7</button>
+        <button>8</button>
+        <button>9</button>
+        <button class="delete">Delete</button>
+      </div>
+      <div id="corner-number" class="keyboard hidden">
+        <button>1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>4</button>
+        <button>5</button>
+        <button>6</button>
+        <button>7</button>
+        <button>8</button>
+        <button>9</button>
+        <button>Delete</button>
+      </div>
+      <div id="center-number" class="keyboard hidden">
+        <button>1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>4</button>
+        <button>5</button>
+        <button>6</button>
+        <button>7</button>
+        <button>8</button>
+        <button>9</button>
+        <button>Delete</button>
+      </div>
+      </div>
+      <div id="choice">
+        <button id='app_mode_button'>Mode: <span id='app_mode'>setter</span></button>
+        <button id='clear'>Clear progress</button>
+        <!--
+          <button>Number</button>
+          <button>Corner</button>
+          <button>Center</button>
+          <button>Color</button>-->
+      </div>
     </div>
-    <p>
-    <button id='new'>Generate soduku</button>
-    <button id='app_mode_button'>Mode: <span id='app_mode'>setter</span></button>
-    <button id='reset'>Reset grid</button>
-    <button id='clear'>Clear progress</button>
-    <button id='clear_computer'>Clear computer</button>
-    <button id='solve'>Solve</button>
-    </p>
-    <p>
-    <button id='diag_pos_button'>Diagonal +: <span id='diag_pos'>Off</span></button>
-    <button id='diag_neg_button'>Diagonal -: <span id='diag_neg'>Off</span></button>
-    <button id='king_button'>King move: <span id='king'>Off</span></button>
-    </p>
-    <p><input id="save"/></p>
-    <p>Solution count: <span id='count'></span></p>
+    </div>
     <script src="./index.js"></script>
   </body>
 </html>

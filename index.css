@@ -22,15 +22,15 @@ li:nth-child(n+46):nth-child(-n+54) {
 
 ul {
   display: grid;
-  grid-template-columns: repeat(9, min(8vw, 8vh));
-  grid-template-rows: repeat(9, min(8vw, 8vh));
+  grid-template-columns: repeat(9, min(5rem, 10vh));
+  grid-template-rows: repeat(9, min(5rem, 10vh));
   justify-content: center;
   align-content: center;
   grid-gap: 0rem;
   list-style: none;
   margin: 0;
   padding: 0;
-  font-size: calc(2vw + 10px);
+  font-size: calc(min(5rem, 10vh)/1.75);
 }
 li {
   margin: 0;
@@ -70,26 +70,30 @@ span {
 }
 
 .selected {
-  background-color: RGB(247, 244, 134);
-}
-
-input {
-  width: 50vw;
+  background-color: RGBA(247, 244, 134, 0.8);
 }
 
 .sudoku-container {
   display: flex;
   justify-content: center;
-  align-items: center;
   padding: 0;
   margin: 0 0 2vw;
 }
 
 .sudoku {
+  flex-grow: 2;
   position:relative;
   display: inline-block;
   padding: 0;
   margin-bottom: 0;
+}
+
+.sudoku-side {
+  width: 25vw;
+  flex-grow: 1;
+  flex-shrink: 0;
+  padding-left: 2.5vw;
+  padding-right: 2.5vw;
 }
 
 .diag {
@@ -123,4 +127,59 @@ input {
     transparent 50.4%,
     transparent
   );
+}
+
+button {
+  margin: 0.2rem;
+}
+
+.right-container {
+  align-self:center;
+  display: flex;
+  flex-direction: row;
+}
+
+#choice {
+  display: flex;
+  flex-direction: column;
+}
+
+.keyboard {
+  display: grid;
+  grid-template-columns: repeat(3, 4rem);
+  grid-template-rows: repeat(4, 4rem);
+}
+
+.keyboard-container button {
+  padding: 0px;
+}
+
+.keyboard button {
+  font-size: 2rem;
+}
+
+.delete {
+  grid-column-start: 1;
+  grid-column-end: span 3;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Toggle button */
+.toggle-on {
+  background-color: LightGreen;
+}
+
+.toggle-on::after {
+  content: ": On";
+}
+
+.toggle-off {
+  background-color: LightCoral;
+}
+
+.toggle-off::after {
+  content: ": Off";
 }
