@@ -302,9 +302,18 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       return;
     }
 
-    var t0 = performance.now()
-    solution_count.innerHTML = js.solution_count(get_current_line())
-    var t1 = performance.now()
+    var t0 = performance.now();
+    var sc = js.solution_count(get_current_line());
+    if (sc == 0){
+      solution_count.innerHTML = "No solution";
+    }
+    else if(sc == 1000) {
+      solution_count.innerHTML = "1000 or more solutions";
+    }
+    else {
+      solution_count.innerHTML = sc;
+    }
+    var t1 = performance.now();
     console.log("solution count timing: ", t1-t0)
   }
 
