@@ -112,6 +112,15 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       update_variant_visual();
       update_solution_count();
     };
+
+    var numbers = document.getElementById("number").children
+    for(let i = 0; i < numbers.length; i++) {
+      let button = numbers[i];
+      console.log(button);
+      button.onclick = (event) => {
+        handle_key_event(button.innerHTML);
+      };
+    }
   }
 
   function update_variant_visual(){
@@ -143,28 +152,32 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
 
   function init_keyboard() {
     document.addEventListener('keydown', (event) => {
-      var key = parseInt(event.key)
-      var current_kind = app_mode == 'setter' ? 'clue' : 'human';
-      if (Number.isInteger(key) && key >= 1 && key <= 9){
-        for (let cell_id of selected) {
-          if (can_change(cell_id)) {
-            set_cell(cell_id, key, current_kind);
-          }
+      handle_key_event(event.key);
+    });
+  }
+
+  function handle_key_event(key) {
+    key = parseInt(key) || key;
+    var current_kind = app_mode == 'setter' ? 'clue' : 'human';
+    if (Number.isInteger(key) && key >= 1 && key <= 9){
+      for (let cell_id of selected) {
+        if (can_change(cell_id)) {
+          set_cell(cell_id, key, current_kind);
         }
-        update_solution_count()
       }
-      else if (event.key == "Delete" || event.key == "Backspace"){
-        for (let cell_id of selected) {
-          if (can_change(cell_id)) {
-            set_cell(cell_id, '', current_kind);
-          }
+      update_solution_count()
+    }
+    else if (key == "Delete" || key == "Backspace"){
+      for (let cell_id of selected) {
+        if (can_change(cell_id)) {
+          set_cell(cell_id, '', current_kind);
         }
-        update_solution_count()
       }
-      else {
-        console.log("unhandled event", event.key)
-      }
-    })
+      update_solution_count()
+    }
+    else {
+      console.log("unhandled event", key)
+    }
   }
 
   function can_change(id) {

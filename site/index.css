@@ -92,6 +92,12 @@ input {
   margin-bottom: 0;
 }
 
+.sudoku-side {
+  width: 25vw;
+  padding-left: 2.5vw;
+  padding-right: 2.5vw;
+}
+
 .diag {
   z-index: -2;
   position: absolute;
@@ -123,4 +129,38 @@ input {
     transparent 50.4%,
     transparent
   );
+}
+
+.keyboard-container {
+  display: flex;
+  flex-direction: row;
+}
+
+#choice {
+  display: flex;
+  flex-direction: column;
+}
+
+.keyboard {
+  display: grid;
+  grid-template-columns: repeat(3, 4rem);
+  grid-template-rows: repeat(4, 4rem);
+}
+
+button {
+  margin: 0.2rem;
+  padding: 0px;
+}
+
+.keyboard button {
+  font-size: 2rem;
+}
+
+.delete {
+  grid-column-start: 1;
+  grid-column-end: span 3;
+}
+
+.hidden {
+  display: none;
 }
