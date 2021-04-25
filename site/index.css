@@ -70,13 +70,12 @@ span {
 }
 
 .selected {
-  background-color: RGB(247, 244, 134);
+  background-color: RGBA(247, 244, 134, 0.8);
 }
 
 .sudoku-container {
   display: flex;
   justify-content: center;
-  align-items: center;
   padding: 0;
   margin: 0 0 2vw;
 }
@@ -135,6 +134,7 @@ button {
 }
 
 .right-container {
+  align-self:center;
   display: flex;
   flex-direction: row;
 }
