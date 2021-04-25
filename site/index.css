@@ -131,6 +131,10 @@ input {
   );
 }
 
+button {
+  margin: 0.2rem;
+}
+
 .keyboard-container {
   display: flex;
   flex-direction: row;
@@ -147,8 +151,7 @@ input {
   grid-template-rows: repeat(4, 4rem);
 }
 
-button {
-  margin: 0.2rem;
+.keyboard-container button {
   padding: 0px;
 }
 
@@ -163,4 +166,21 @@ button {
 
 .hidden {
   display: none;
+}
+
+/* Toggle button */
+.toggle-on {
+  background-color: LightGreen;
+}
+
+.toggle-on::after {
+  content: ": On";
+}
+
+.toggle-off {
+  background-color: LightCoral;
+}
+
+.toggle-off::after {
+  content: ": Off";
 }

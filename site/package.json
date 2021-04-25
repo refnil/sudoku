@@ -5,7 +5,8 @@
     "build-prod": "webpack --config webpack.config.production.js"
   },
   "dependencies": {
-    "sudoku": "file:../pkg"
+    "sudoku": "file:../pkg",
+    "water.css": "^2.0.0"
   },
   "devDependencies": {
     "webpack": "^4.25.1",

@@ -7,13 +7,14 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var selected = new Set()
   var input = document.getElementById('save');
   var diag_pos = false;
-  var diag_pos_text = document.getElementById('diag_pos');
   var diag_pos_vis = document.getElementById('diag_pos_vis')
   var diag_neg = false;
-  var diag_neg_text = document.getElementById('diag_neg');
   var diag_neg_vis = document.getElementById('diag_neg_vis')
   var king = false;
-  var king_text = document.getElementById('king');
+
+  var diag_pos_button = document.getElementById("diag_pos_button");
+  var diag_neg_button = document.getElementById("diag_neg_button");
+  var king_button = document.getElementById("king_button");
 
   function getElementsByXPath(xpath)
   {
@@ -92,21 +93,18 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     app_mode_button = document.getElementById("app_mode_button");
     app_mode_button.onclick = change_mode;
 
-    diag_pos_button = document.getElementById("diag_pos_button");
     diag_pos_button.onclick = (event) => {
       diag_pos = !diag_pos;
       update_variant_visual();
       update_solution_count();
     }
 
-    diag_neg_button = document.getElementById("diag_neg_button");
     diag_neg_button.onclick = (event) => {
       diag_neg = !diag_neg;
       update_variant_visual();
       update_solution_count();
     }
 
-    king_button = document.getElementById("king_button");
     king_button.onclick = (event) => {
       king = !king;
       update_variant_visual();
@@ -124,29 +122,31 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function update_variant_visual(){
-      update_text_on_off(diag_pos, diag_pos_text);
+      update_text_on_off(diag_pos, diag_pos_button);
       if (diag_pos) {
         diag_pos_vis.classList.add('diag', 'diag-pos');
       }
       else {
         diag_pos_vis.classList.remove('diag-pos');
       }
-      update_text_on_off(diag_neg, diag_neg_text);
+      update_text_on_off(diag_neg, diag_neg_button);
       if (diag_neg) {
         diag_neg_vis.classList.add('diag', 'diag-neg');
       }
       else {
         diag_neg_vis.classList.remove('diag-neg');
       }
-      update_text_on_off(king, king_text);
+      update_text_on_off(king, king_button);
   }
 
-  function update_text_on_off(value, text_ref) {
+  function update_text_on_off(value, button) {
     if (value) {
-      text_ref.innerHTML = "On";
+      button.classList.add("toggle-on");
+      button.classList.remove("toggle-off");
     }
     else {
-      text_ref.innerHTML = "Off";
+      button.classList.remove("toggle-on");
+      button.classList.add("toggle-off");
     }
   }
 
