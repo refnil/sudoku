@@ -1,3 +1,5 @@
+'use strict';
+import "./index.css"
 
 import("./node_modules/sudoku/sudoku.js").then((js) => {
   var solve_only = false;
@@ -33,13 +35,13 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function render_selected(){
-    for(i = 0; i < cells.length; i++){
-      full_cell = cells[i].parentElement
+    for(var i = 0; i < cells.length; i++){
+      var full_cell = cells[i].parentElement;
       if (selected.has(i)){
-        full_cell.classList.add('selected')
+        full_cell.classList.add('selected');
       }
       else {
-        full_cell.classList.remove('selected')
+        full_cell.classList.remove('selected');
       }
     }
   }
@@ -63,8 +65,8 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         }
       }
     }
-    for(i = 0; i < cells.length; i++){
-      full_cell = cells[i].parentElement
+    for(var i = 0; i < cells.length; i++){
+      var full_cell = cells[i].parentElement
       full_cell.addEventListener('mousedown', cell_click(i));
       full_cell.addEventListener('mouseover', cell_over(i));
     }
@@ -85,17 +87,17 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function init_button() {
-    solve = getElementsByXPath('//button[@id="solve"]')[0];
+    var solve = getElementsByXPath('//button[@id="solve"]')[0];
     solve.onclick = solve_current;
-    new_sudoku = getElementsByXPath('//button[@id="new"]')[0];
+    var new_sudoku = getElementsByXPath('//button[@id="new"]')[0];
     new_sudoku.onclick = generate_new;
-    cc_button = document.getElementById("clear_computer");
+    var cc_button = document.getElementById("clear_computer");
     cc_button.onclick = clear_computer;
-    clear_button = document.getElementById("clear");
+    var clear_button = document.getElementById("clear");
     clear_button.onclick = clear;
-    reset_button = document.getElementById("reset");
+    var reset_button = document.getElementById("reset");
     reset_button.onclick = reset;
-    app_mode_button = document.getElementById("app_mode_button");
+    var app_mode_button = document.getElementById("app_mode_button");
     app_mode_button.onclick = change_mode;
 
     diag_pos_button.onclick = (event) => {
@@ -209,29 +211,29 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function clear_computer(){
-    for(i = 0; i < cells.length; i++){
+    for(var i = 0; i < cells.length; i++){
       set_cell(i, '', "computer");
     }
     update_solution_count()
   }
 
   function clear() {
-    for(i = 0; i < cells.length; i++){
+    for(var i = 0; i < cells.length; i++){
       set_cell(i, '', "human");
     }
     update_solution_count()
   }
 
   function reset() {
-    for(i = 0; i < cells.length; i++){
+    for(var i = 0; i < cells.length; i++){
       set_cell(i, '', "clue");
     }
     update_solution_count()
   }
 
   function get_line_with(selector){
-    line = ""
-    for(i = 0; i < 81; i++){
+    var line = ""
+    for(var i = 0; i < 81; i++){
       var cell = cells[i];
       var content = cells[i].innerHTML;
       if(selector(cell, content)){
@@ -245,7 +247,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function get_variant() {
-    line = ""
+    var line = ""
     if (diag_pos) {
       line += ";diag_pos";
     }
@@ -323,7 +325,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function get_url(){
-    full_url = window.location.href;
+    var full_url = window.location.href;
     return full_url.split('?')[0];
   }
 
@@ -360,7 +362,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function set_line(line, kind = "human"){
-    for(i = 0; i < 81; i++){
+    for(var i = 0; i < 81; i++){
       var value = line[i];
       if(value === undefined || value === '.') {
         value = '';
@@ -372,8 +374,8 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
 
   function set_cell(id, value = '', kind = "human") {
     // kind can be "clue", "human", "computer"
-    cell = cells[id];
-    cl = cell.classList;
+    var cell = cells[id];
+    var cl = cell.classList;
     switch(kind){
       case "clue":
         cl.remove("human", "computer");

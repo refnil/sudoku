@@ -1,6 +1,7 @@
 {
   "scripts": {
     "serve": "webpack-dev-server",
+    "serve-prod": "webpack-dev-server --config webpack.config.production.js",
     "build": "webpack",
     "build-prod": "webpack --config webpack.config.production.js"
   },
@@ -9,6 +10,8 @@
     "water.css": "^2.0.0"
   },
   "devDependencies": {
+    "css-loader": "^5.2.4",
+    "style-loader": "^2.0.0",
     "webpack": "^4.25.1",
     "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.10"
