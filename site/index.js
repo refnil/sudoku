@@ -1,5 +1,6 @@
 
 import("./node_modules/sudoku/sudoku.js").then((js) => {
+  var solve_only = false;
   var cells = getElementsByXPath('//li/span');
   var solution_count = document.getElementById('count');
   var app_mode = 'setter';
@@ -16,6 +17,9 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var diag_pos_button = document.getElementById("diag_pos_button");
   var diag_neg_button = document.getElementById("diag_neg_button");
   var king_button = document.getElementById("king_button");
+
+  var solving_a = document.getElementById("solving_url");
+  var setting_a = document.getElementById("setting_url");
 
   function getElementsByXPath(xpath)
   {
@@ -115,7 +119,6 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     var numbers = document.getElementById("number").children
     for(let i = 0; i < numbers.length; i++) {
       let button = numbers[i];
-      console.log(button);
       button.onclick = (event) => {
         handle_key_event(button.innerHTML);
       };
@@ -259,10 +262,12 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     return get_line_with((cell, content) => content != '') + get_variant()
   }
 
-  function get_save_data() {
+  function get_save_data(include_human=true) {
     var clue = "clue" + get_line_with((cell) => cell.classList.contains("clue"));
-    var human = ";human" + get_line_with((cell) => cell.classList.contains("human"));
-
+    var human = "";
+    if(include_human) {
+      human = ";human" + get_line_with((cell) => cell.classList.contains("human"));
+    }
     return clue + human + get_variant()
   }
 
@@ -292,7 +297,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function update_solution_count() {
-    save_data = get_save_data()
+    var save_data = get_save_data()
     if (input !== document.activeElement) {
       input.value = save_data;
     }
@@ -322,10 +327,24 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     return full_url.split('?')[0];
   }
 
-  function update_url(){
-    new_url = get_url() + '?save=' + save_data
-    window.history.replaceState({}, '', new_url);
+  function solve_param(force=null) {
+    if (force != null || solve_only) {
+      return "&solve";
+    }
+    else {
+      return "";
+    }
   }
+
+  function update_url(){
+    var base = get_url() + '?data=';
+    var new_url = base + get_save_data() + solve_param();
+    window.history.replaceState({}, '', new_url);
+
+    setting_a.href = base + get_save_data();
+    solving_a.href = base + get_save_data(false) + solve_param(true);
+  }
+
 
   function solve_current(){
     var res = js.solve_common(get_current_line())
@@ -389,8 +408,20 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   js.init()
   init_ui()
   init_keyboard()
-  var save = new URLSearchParams(window.location.search).get('save');
+  var params = new URLSearchParams(window.location.search);
+
+  var par_solve_only = params.get('solve');
+  if (par_solve_only != null){
+    solve_only = true;
+    if (app_mode == 'setter') {
+      change_mode();
+    }
+    document.getElementById("app_mode_button").remove();
+  }
+
+  var save = params.get('data');
   if (save != null){
     load_data(save);
   }
+
 });
