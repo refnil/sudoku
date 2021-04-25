@@ -1,15 +1,16 @@
 
 import("./node_modules/sudoku/sudoku.js").then((js) => {
-  var cells = getElementsByXPath('//li/span')
-  var solution_count = document.getElementById('count')
-  var app_mode = 'setter'
-  var app_mode_text = document.getElementById('app_mode')
-  var selected = new Set()
+  var cells = getElementsByXPath('//li/span');
+  var solution_count = document.getElementById('count');
+  var app_mode = 'setter';
+  var app_mode_text = document.getElementById('app_mode');
+  var setter_side = document.getElementById('setter-side');
+  var selected = new Set();
   var input = document.getElementById('save');
   var diag_pos = false;
-  var diag_pos_vis = document.getElementById('diag_pos_vis')
+  var diag_pos_vis = document.getElementById('diag_pos_vis');
   var diag_neg = false;
-  var diag_neg_vis = document.getElementById('diag_neg_vis')
+  var diag_neg_vis = document.getElementById('diag_neg_vis');
   var king = false;
 
   var diag_pos_button = document.getElementById("diag_pos_button");
@@ -195,6 +196,13 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   function change_mode() {
     app_mode = app_mode == 'setter' ? 'solver' : 'setter'
     app_mode_text.innerHTML = app_mode
+    if (app_mode == 'setter') {
+      setter_side.classList.remove("hidden");
+    }
+    else {
+      setter_side.classList.add("hidden");
+    }
+    update_solution_count();
   }
 
   function clear_computer(){
@@ -284,15 +292,20 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function update_solution_count() {
-    var t0 = performance.now()
-    solution_count.innerHTML = js.solution_count(get_current_line())
-    var t1 = performance.now()
-    console.log("solution count timing: ", t1-t0)
     save_data = get_save_data()
     if (input !== document.activeElement) {
       input.value = save_data;
     }
     update_url();
+
+    if (app_mode != 'setter') {
+      return;
+    }
+
+    var t0 = performance.now()
+    solution_count.innerHTML = js.solution_count(get_current_line())
+    var t1 = performance.now()
+    console.log("solution count timing: ", t1-t0)
   }
 
   function get_url(){

@@ -86,6 +86,7 @@ input {
 }
 
 .sudoku {
+  flex-grow: 2;
   position:relative;
   display: inline-block;
   padding: 0;
@@ -94,6 +95,8 @@ input {
 
 .sudoku-side {
   width: 25vw;
+  flex-grow: 1;
+  flex-shrink: 0;
   padding-left: 2.5vw;
   padding-right: 2.5vw;
 }
@@ -135,7 +138,7 @@ button {
   margin: 0.2rem;
 }
 
-.keyboard-container {
+.right-container {
   display: flex;
   flex-direction: row;
 }

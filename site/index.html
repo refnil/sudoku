@@ -8,7 +8,22 @@
   </head>
   <body>
     <div class="sudoku-container">
-      <div class="sudoku-side">
+      <div id="setter-side" class="sudoku-side">
+        <h2>Setter menu</h2>
+        <button id='reset'>New grid</button>
+        <h3>Computational operation</h3>
+        <p>
+        <button id='new'>Generate random soduku</button>
+        <button id='solve'>Solve</button>
+        <button id='clear_computer'>Clear computer hint</button>
+        </p>
+        <p>Solution count: <span id='count'></span></p>
+        <h3>Constraints</h3>
+        <p>
+        <button id='diag_pos_button'>Diagonal +</button>
+        <button id='diag_neg_button'>Diagonal -</button>
+        <button id='king_button'>King move</button>
+        </p>
       </div>
     <div class="sudoku">
     <ul>
@@ -97,7 +112,8 @@
       <div id='diag_pos_vis'></div>
       <div id='diag_neg_vis'></div>
     </div>
-    <div class="sudoku-side keyboard-container">
+    <div class="sudoku-side right-container">
+      <div class="keyboard-container">
       <div id="number" class="keyboard">
         <button>1</button>
         <button>2</button>
@@ -134,29 +150,19 @@
         <button>9</button>
         <button>Delete</button>
       </div>
-      <!--<div id="choice">
+      </div>
+      <div id="choice">
+        <button id='app_mode_button'>Mode: <span id='app_mode'>setter</span></button>
+        <button id='clear'>Clear progress</button>
+        <!--
           <button>Number</button>
           <button>Corner</button>
           <button>Center</button>
-          <button>Color</button>
-      </div>-->
+          <button>Color</button>-->
+      </div>
     </div>
     </div>
-    <p>
-    <button id='new'>Generate soduku</button>
-    <button id='app_mode_button'>Mode: <span id='app_mode'>setter</span></button>
-    <button id='reset'>Reset grid</button>
-    <button id='clear'>Clear progress</button>
-    <button id='clear_computer'>Clear computer</button>
-    <button id='solve'>Solve</button>
-    </p>
-    <p>
-    <button id='diag_pos_button'>Diagonal +</button>
-    <button id='diag_neg_button'>Diagonal -</button>
-    <button id='king_button'>King move</button>
-    </p>
     <p><input id="save"/></p>
-    <p>Solution count: <span id='count'></span></p>
     <script src="./index.js"></script>
   </body>
 </html>
