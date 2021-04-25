@@ -73,10 +73,6 @@ span {
   background-color: RGB(247, 244, 134);
 }
 
-input {
-  width: 50vw;
-}
-
 .sudoku-container {
   display: flex;
   justify-content: center;

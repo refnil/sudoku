@@ -260,7 +260,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function get_save_data() {
-    var clue = ";clue" + get_line_with((cell) => cell.classList.contains("clue"));
+    var clue = "clue" + get_line_with((cell) => cell.classList.contains("clue"));
     var human = ";human" + get_line_with((cell) => cell.classList.contains("human"));
 
     return clue + human + get_variant()
