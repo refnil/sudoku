@@ -3,10 +3,23 @@ import "./index.css"
 
 import("./node_modules/sudoku/sudoku.js").then((js) => {
   var solve_only = false;
-  var cells = new Array(); //getElementsByXPath('//li/span');
+  var cells = new Array();
+  var middle_cells = new Array();
   var solution_count = document.getElementById('count');
   var app_mode = 'setter';
   var app_mode_text = document.getElementById('app_mode');
+
+  var keyboard_mode = "normal";
+  var key_number_button = document.getElementById("key_number");
+  var key_middle_button = document.getElementById("key_middle");
+  //var key_corner_button = document.getElementById("key_corner");
+  //var key_color_button = document.getElementById("key_color");
+
+  var key_number = document.getElementById("number");
+  var key_middle = document.getElementById("middle-number");
+  //var key_corner = document.getElementById("key_corner");
+  //var key_color = document.getElementById("key_color");
+
   var setter_side = document.getElementById('setter-side');
   var selected = new Set();
   var input = document.getElementById('save');
@@ -34,17 +47,6 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var puzzle_message = document.getElementById("puzzle_message");
   var puzzle_message_edit = document.getElementById("puzzle_message_edit");
   var puzzle_variant_rule = document.getElementById("puzzle_variant_rule");
-
-  function getElementsByXPath(xpath)
-  {
-      let results = [];
-      let query = document.evaluate(xpath, document,
-          null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-      for (let i = 0, length = query.snapshotLength; i < length; ++i) {
-          results.push(query.snapshotItem(i));
-      }
-      return results;
-  }
 
   function render_selected(){
     for(var i = 0; i < cells.length; i++){
@@ -92,6 +94,12 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
 
       cell_li.addEventListener('mousedown', cell_click(i));
       cell_li.addEventListener('mouseover', cell_over(i));
+
+      var middle_cell_span = document.createElement("span");
+      cell_li.appendChild(middle_cell_span);
+      middle_cells.push(middle_cell_span);
+      middle_cell_span.classList.add("middle-cell");
+      //middle_cell_span.innerHTML = "12346789";
     }
     document.addEventListener('mousedown', () => is_mouse_down = true)
     document.addEventListener('mouseup', () => is_mouse_down = false)
@@ -114,9 +122,9 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function init_button() {
-    var solve = getElementsByXPath('//button[@id="solve"]')[0];
+    var solve = document.getElementById("solve");
     solve.onclick = solve_current;
-    var new_sudoku = getElementsByXPath('//button[@id="new"]')[0];
+    var new_sudoku = document.getElementById("new");
     new_sudoku.onclick = generate_new;
     var cc_button = document.getElementById("clear_computer");
     cc_button.onclick = clear_computer;
@@ -150,13 +158,26 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       update_variant_visual();
     };
 
-    var numbers = document.getElementById("number").children
-    for(let i = 0; i < numbers.length; i++) {
-      let button = numbers[i];
+    var keyboard_buttons = Array.from(document.getElementById("number").children).concat(
+      Array.from(document.getElementById("middle-number").children)
+    );
+    for(let i = 0; i < keyboard_buttons.length; i++) {
+      let button = keyboard_buttons[i];
       button.onclick = (event) => {
         handle_key_event(button.innerHTML);
       };
     }
+
+    function set_keyboard_mode(button, mode, keyboard) {
+      button.onclick = (event) => {
+        keyboard_mode = mode;
+        update_variant_visual();
+      };
+    }
+    set_keyboard_mode(key_number_button, "normal");
+    set_keyboard_mode(key_middle_button, "middle");
+    //set_keyboard_mode(key_corner_button, "corner");
+    //set_keyboard_mode(key_color_button, "color");
   }
 
   function update_variant_visual(){
@@ -201,6 +222,24 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         content += "Two cell cannot contain the same number if a king could move between them in one move. "
       }
       puzzle_variant_rule.innerHTML = content;
+
+      // Keyboard
+      function update_mode(name, button, keyboard){
+        if (keyboard_mode == name)
+        {
+          button.classList.add("toggle-on");
+          button.classList.remove("toggle-off");
+          keyboard.classList.remove("hidden");
+        }
+        else {
+          button.classList.remove("toggle-on");
+          button.classList.add("toggle-off");
+          keyboard.classList.add("hidden");
+        }
+      }
+      update_mode("normal", key_number_button, key_number);
+      update_mode("middle", key_middle_button, key_middle);
+      //update_mode("corner", key_corner_button, key_corner);
   }
 
   function update_text_on_off(value, button) {
@@ -226,7 +265,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     if (Number.isInteger(key) && key >= 1 && key <= 9){
       for (let cell_id of selected) {
         if (can_change(cell_id)) {
-          set_cell(cell_id, key, current_kind);
+          set_cell(cell_id, key, current_kind, keyboard_mode);
         }
       }
       update_solution_count()
@@ -448,10 +487,31 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     update_solution_count()
   }
 
-  function set_cell(id, value = '', kind = "human") {
+  function set_cell(id, value = '', kind = "human", mode = null) {
     // kind can be "clue", "human", "computer"
-    var cell = cells[id];
+    // mode can be null, "normal", "middle", "corner"
+    if (mode == null) {
+      mode = keyboard_mode;
+    }
+    var array = null;
+    var array_to_delete = null;
+    var array_to_check = null;
+    switch (mode) {
+      case "normal":
+        array = cells;
+        array_to_delete = middle_cells;
+        break;
+      case "middle":
+        array = middle_cells;
+        array_to_check = cells;
+        break;
+    }
+    var cell = array[id];
     var cl = cell.classList;
+    if (array_to_check && array_to_check[id].innerHTML != "") {
+      console.log("already something better in cell");
+      return;
+    }
     switch(kind){
       case "clue":
         cl.remove("human", "computer");
@@ -474,12 +534,36 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       default:
         console.error("UNKNOWN KIND: ", kind);
     }
-    cell.innerHTML = value;
+    switch (mode) {
+      case "normal":
+        cell.innerHTML = value;
+        break;
+      case "middle":
+        if(value == '') {
+          cell.innerHTML = '';
+          break;
+        }
+        var content = cell.innerHTML;
+        if (content.indexOf(value) >= 0) {
+          content = content.split(value).join('');
+        }
+        else {
+          var as_array = (content+value).split('');
+          as_array.sort();
+          content = as_array.join('');
+        }
+        cell.innerHTML = content;
+    }
     if (value == '') {
       cl.remove("clue", "human", "computer");
     }
     else {
       cl.add(kind);
+    }
+    if (array_to_delete) {
+      var del = array_to_delete[id];
+      del.classList.remove("clue", "human", "computer");
+      del.innerHTML = '';
     }
   }
 
