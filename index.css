@@ -75,6 +75,12 @@ span {
   background-color: RGBA(247, 244, 134, 0.8);
 }
 
+.middle-cell {
+  font-size: calc(min(5rem, 10vh)/4);
+  overflow-wrap: anywhere;
+}
+
+
 .sudoku-container {
   display: flex;
   justify-content: center;
@@ -157,6 +163,10 @@ button {
 
 .keyboard button {
   font-size: 2rem;
+}
+
+.middle-cell button {
+  font-size: 1rem;
 }
 
 .delete {
