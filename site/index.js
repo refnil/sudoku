@@ -27,6 +27,14 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var hide_setter = false;
   var hide_setter_button = document.getElementById("hide_setter");
 
+  var puzzle_name = document.getElementById("puzzle_name");
+  var puzzle_name_edit = document.getElementById("puzzle_name_edit");
+  var puzzle_author = document.getElementById("puzzle_author");
+  var puzzle_author_edit = document.getElementById("puzzle_author_edit");
+  var puzzle_message = document.getElementById("puzzle_message");
+  var puzzle_message_edit = document.getElementById("puzzle_message_edit");
+  var puzzle_variant_rule = document.getElementById("puzzle_variant_rule");
+
   function getElementsByXPath(xpath)
   {
       let results = [];
@@ -99,6 +107,10 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       }
       update_url();
     })
+
+    puzzle_name_edit.addEventListener('input', update_variant_visual);
+    puzzle_author_edit.addEventListener('input', update_variant_visual);
+    puzzle_message_edit.addEventListener('input', update_variant_visual);
   }
 
   function init_button() {
@@ -168,6 +180,27 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
 
       // Settings
       update_text_on_off(hide_setter, hide_setter_button);
+
+      // Puzzle informations
+      puzzle_name.innerHTML = puzzle_name_edit.value || "Sudoku";
+      if (puzzle_author_edit.value != "") {
+        puzzle_author.classList.remove("hidden");
+        puzzle_author.innerHTML = "by " + puzzle_author_edit.value;
+      }
+      else {
+        puzzle_author.classList.add("hidden");
+      }
+      puzzle_message.innerHTML = puzzle_message_edit.value;
+
+      // Variant rules
+      var content = "";
+      if (diag_neg || diag_pos) {
+        content += "Number on a shown diagonal cannot be repeated on that diagonal. "
+      }
+      if (king) {
+        content += "Two cell cannot contain the same number if a king could move between them in one move. "
+      }
+      puzzle_variant_rule.innerHTML = content;
   }
 
   function update_text_on_off(value, button) {
@@ -285,6 +318,19 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     return line;
   }
 
+  function get_puzzle_info() {
+    var info = "";
+    function add(name, edit){
+      if (edit.value) {
+        info += "&" + name + "=" + encodeURIComponent(puzzle_name_edit.value);
+      }
+    }
+    add("name", puzzle_name_edit);
+    add("author", puzzle_author_edit);
+    add("message", puzzle_message_edit);
+    return info;
+  }
+
   function get_current_line_only() {
     return get_line_with((cell, content) => content != '');
   }
@@ -299,7 +345,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     if(include_human) {
       human = ";human" + get_line_with((cell) => cell.classList.contains("human"));
     }
-    return clue + human + get_variant()
+    return clue + human + get_variant() + get_puzzle_info()
   }
 
   function load_data(data) {
@@ -452,8 +498,20 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     document.getElementById("app_mode_button").remove();
   }
 
+  function set_value_if_param(param, edit){
+    var load = params.get(param);
+    if (load) {
+      edit.value = load;
+    }
+  }
+  set_value_if_param("name", puzzle_name_edit);
+  set_value_if_param("author", puzzle_author_edit);
+  set_value_if_param("message", puzzle_message_edit);
+
   var save = params.get('data');
   if (save != null){
     load_data(save);
   }
+  update_variant_visual();
+
 });

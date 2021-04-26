@@ -6,11 +6,21 @@
     <script src="./index.js"></script>
   </head>
   <body>
-    <center><h1>Sudoku</h1></center>
+    <center>
+      <h1 id="puzzle_name">Sudoku</h1>
+      <h2 id="puzzle_author" class="hidden"></h2>
+    </center>
     <div class="sudoku-container">
       <div id="setter-side" class="sudoku-side">
         <h2>Setter menu</h2>
         <button id='reset'>New grid</button>
+        <details>
+          <summary>Puzzle informations editor</summary>
+          <label>Name</label><input id="puzzle_name_edit"/>
+          <label>Author</label><input id="puzzle_author_edit"/>
+          <label>Rules:</label>
+          <textarea id="puzzle_message_edit"></textarea>
+        </details>
         <h3>Computational operation</h3>
         <p>
         <button id='new'>Generate random sudoku</button>
@@ -44,7 +54,8 @@
           <div id='diag_neg_vis'></div>
         </div>
       </div>
-    <div class="sudoku-side right-container">
+    <div class="sudoku-side column">
+      <div class="row">
       <div class="keyboard-container">
       <div id="number" class="keyboard">
         <button>1</button>
@@ -83,7 +94,7 @@
         <button>Delete</button>
       </div>
       </div>
-      <div id="choice">
+      <div class="column">
         <button id='app_mode_button'>Mode: <span id='app_mode'>setter</span></button>
         <button id='clear'>Clear progress</button>
         <!--
@@ -92,6 +103,9 @@
           <button>Center</button>
           <button>Color</button>-->
       </div>
+      </div>
+      <p id="puzzle_message"></p>
+      <p id="puzzle_variant_rule"></p>
     </div>
     </div>
   </body>

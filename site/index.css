@@ -135,12 +135,12 @@ button {
   margin: 0.2rem;
 }
 
-.right-container {
+.row {
   display: flex;
   flex-direction: row;
 }
 
-#choice {
+.column {
   display: flex;
   flex-direction: column;
 }
