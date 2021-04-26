@@ -3,7 +3,7 @@ import "./index.css"
 
 import("./node_modules/sudoku/sudoku.js").then((js) => {
   var solve_only = false;
-  var cells = getElementsByXPath('//li/span');
+  var cells = new Array(); //getElementsByXPath('//li/span');
   var solution_count = document.getElementById('count');
   var app_mode = 'setter';
   var app_mode_text = document.getElementById('app_mode');
@@ -22,6 +22,10 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
 
   var solving_a = document.getElementById("solving_url");
   var setting_a = document.getElementById("setting_url");
+  var sudokuwiki = document.getElementById("sudokuwiki");
+
+  var hide_setter = false;
+  var hide_setter_button = document.getElementById("hide_setter");
 
   function getElementsByXPath(xpath)
   {
@@ -65,10 +69,21 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         }
       }
     }
-    for(var i = 0; i < cells.length; i++){
-      var full_cell = cells[i].parentElement
-      full_cell.addEventListener('mousedown', cell_click(i));
-      full_cell.addEventListener('mouseover', cell_over(i));
+
+
+    var sudoku = document.getElementById("sudoku");
+    var sudoku_ul = document.createElement("ul");
+    sudoku.appendChild(sudoku_ul);
+
+    for(var i = 0; i < 81; i++){
+      var cell_li = document.createElement("li");
+      sudoku_ul.appendChild(cell_li);
+      var cell_span = document.createElement("span");
+      cell_li.appendChild(cell_span);
+      cells.push(cell_span);
+
+      cell_li.addEventListener('mousedown', cell_click(i));
+      cell_li.addEventListener('mouseover', cell_over(i));
     }
     document.addEventListener('mousedown', () => is_mouse_down = true)
     document.addEventListener('mouseup', () => is_mouse_down = false)
@@ -118,6 +133,11 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       update_solution_count();
     };
 
+    hide_setter_button.onclick = (event) => {
+      hide_setter = !hide_setter;
+      update_variant_visual();
+    };
+
     var numbers = document.getElementById("number").children
     for(let i = 0; i < numbers.length; i++) {
       let button = numbers[i];
@@ -128,6 +148,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function update_variant_visual(){
+      // Constraints / Variants
       update_text_on_off(diag_pos, diag_pos_button);
       if (diag_pos) {
         diag_pos_vis.classList.add('diag', 'diag-pos');
@@ -143,6 +164,10 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         diag_neg_vis.classList.remove('diag-neg');
       }
       update_text_on_off(king, king_button);
+
+
+      // Settings
+      update_text_on_off(hide_setter, hide_setter_button);
   }
 
   function update_text_on_off(value, button) {
@@ -201,7 +226,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   function change_mode() {
     app_mode = app_mode == 'setter' ? 'solver' : 'setter'
     app_mode_text.innerHTML = app_mode
-    if (app_mode == 'setter') {
+    if (!hide_setter || app_mode == 'setter') {
       setter_side.classList.remove("hidden");
     }
     else {
@@ -260,8 +285,12 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     return line;
   }
 
+  function get_current_line_only() {
+    return get_line_with((cell, content) => content != '');
+  }
+
   function get_current_line() {
-    return get_line_with((cell, content) => content != '') + get_variant()
+    return get_current_line_only() + get_variant();
   }
 
   function get_save_data(include_human=true) {
@@ -345,6 +374,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
 
     setting_a.href = base + get_save_data();
     solving_a.href = base + get_save_data(false) + solve_param(true);
+    sudokuwiki.href = "https://www.sudokuwiki.org/sudoku.htm?bd=" + get_current_line_only()
   }
 
 
@@ -416,6 +446,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   if (par_solve_only != null){
     solve_only = true;
     if (app_mode == 'setter') {
+      hide_setter = true;
       change_mode();
     }
     document.getElementById("app_mode_button").remove();
@@ -425,5 +456,4 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   if (save != null){
     load_data(save);
   }
-
 });

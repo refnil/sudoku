@@ -136,7 +136,6 @@ button {
 }
 
 .right-container {
-  align-self:center;
   display: flex;
   flex-direction: row;
 }
