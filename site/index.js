@@ -110,7 +110,6 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         var corner_cell_span = document.createElement("span");
         cell_li.appendChild(corner_cell_span);
         corner_cell_span.classList.add("corner-cell", "human", corner_name);
-        corner_cell_span.innerHTML = parseInt(id)+1;
         corner_in_cell.push(corner_cell_span);
       }
 
@@ -190,7 +189,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
 
     Array.from(key_color.children).forEach((button, index) => {
       button.onclick = (event) => {
-        handle_key_event(parseInt(button.innerHTML) || (index+1));
+        handle_key_event( index < 9 ? index+1: button.innerHTML);
       }
     })
 
@@ -291,7 +290,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         content += "Number on a shown diagonal cannot be repeated on that diagonal. "
       }
       if (king) {
-        content += "Two cell cannot contain the same number if a king could move between them in one move. "
+        content += "Two cells cannot contain the same number if a king could move between them in one move. "
       }
       puzzle_variant_rule.innerHTML = content;
 
