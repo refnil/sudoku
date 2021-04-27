@@ -5,6 +5,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var solve_only = false;
   var cells = new Array();
   var middle_cells = new Array();
+  var corner_cells = new Array();
   var solution_count = document.getElementById('count');
   var app_mode = 'setter';
   var app_mode_text = document.getElementById('app_mode');
@@ -12,12 +13,12 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var keyboard_mode = "normal";
   var key_number_button = document.getElementById("key_number");
   var key_middle_button = document.getElementById("key_middle");
-  //var key_corner_button = document.getElementById("key_corner");
+  var key_corner_button = document.getElementById("key_corner");
   //var key_color_button = document.getElementById("key_color");
 
   var key_number = document.getElementById("number");
   var key_middle = document.getElementById("middle-number");
-  //var key_corner = document.getElementById("key_corner");
+  var key_corner = document.getElementById("corner-number");
   //var key_color = document.getElementById("key_color");
 
   var setter_side = document.getElementById('setter-side');
@@ -85,6 +86,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     var sudoku_ul = document.createElement("ul");
     sudoku.appendChild(sudoku_ul);
 
+    var corner_names = ["top-left", "top-middle", "top-right", "middle-left", "middle-right", "bottom-left", "bottom-middle-1", "bottom-middle-2", "bottom-right"];
     for(var i = 0; i < 81; i++){
       var cell_li = document.createElement("li");
       sudoku_ul.appendChild(cell_li);
@@ -99,7 +101,17 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       cell_li.appendChild(middle_cell_span);
       middle_cells.push(middle_cell_span);
       middle_cell_span.classList.add("middle-cell");
-      //middle_cell_span.innerHTML = "12346789";
+
+      var corner_in_cell = new Array();
+      corner_cells.push(corner_in_cell);
+      for (var id in corner_names) {
+        var corner_name = corner_names[id];        
+        var corner_cell_span = document.createElement("span");
+        cell_li.appendChild(corner_cell_span);
+        corner_cell_span.classList.add("corner-cell", "human", corner_name);
+        corner_cell_span.innerHTML = parseInt(id)+1;
+        corner_in_cell.push(corner_cell_span);
+      }
     }
     document.addEventListener('mousedown', () => is_mouse_down = true)
     document.addEventListener('mouseup', () => is_mouse_down = false)
@@ -158,8 +170,8 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       update_variant_visual();
     };
 
-    var keyboard_buttons = Array.from(document.getElementById("number").children).concat(
-      Array.from(document.getElementById("middle-number").children)
+    var keyboard_buttons = Array.from(key_number.children).concat(
+      Array.from(key_middle.children),
     );
     for(let i = 0; i < keyboard_buttons.length; i++) {
       let button = keyboard_buttons[i];
@@ -167,6 +179,11 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         handle_key_event(button.innerHTML);
       };
     }
+    Array.from(key_corner.children).forEach(b => {
+      b.onclick = (event) => {
+        handle_key_event(b.children[0].innerHTML);
+      }
+    })
 
     function set_keyboard_mode(button, mode, keyboard) {
       button.onclick = (event) => {
@@ -176,7 +193,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     }
     set_keyboard_mode(key_number_button, "normal");
     set_keyboard_mode(key_middle_button, "middle");
-    //set_keyboard_mode(key_corner_button, "corner");
+    set_keyboard_mode(key_corner_button, "corner");
     //set_keyboard_mode(key_color_button, "color");
   }
 
@@ -239,7 +256,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       }
       update_mode("normal", key_number_button, key_number);
       update_mode("middle", key_middle_button, key_middle);
-      //update_mode("corner", key_corner_button, key_corner);
+      update_mode("corner", key_corner_button, key_corner);
   }
 
   function update_text_on_off(value, button) {
@@ -493,46 +510,50 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     if (mode == null) {
       mode = keyboard_mode;
     }
+    if (mode == "middle" && kind == "clue") {
+      kind = "human";
+    }
     var array = null;
-    var array_to_delete = null;
-    var array_to_check = null;
     switch (mode) {
       case "normal":
         array = cells;
-        array_to_delete = middle_cells;
         break;
       case "middle":
         array = middle_cells;
-        array_to_check = cells;
+        break;
+      case "corner":
+        array = corner_cells;
         break;
     }
     var cell = array[id];
-    var cl = cell.classList;
-    if (array_to_check && array_to_check[id].innerHTML != "") {
+    var cl = cell.classList || null;
+    if (mode != "normal" && cells[id].innerHTML != "") {
       console.log("already something better in cell");
       return;
     }
-    switch(kind){
-      case "clue":
-        cl.remove("human", "computer");
-        break;
-      case "human":
-        if (!cl.contains("clue")) {
-          cl.remove("computer");
+    if (cl) {
+      switch(kind){
+        case "clue":
+          cl.remove("human", "computer");
           break;
-        }
-        else {
-          return;
-        }
-      case "computer":
-        if (!cl.contains("clue") && !cl.contains("human")) {
-          break;
-        }
-        else {
-          return;
-        }
-      default:
-        console.error("UNKNOWN KIND: ", kind);
+        case "human":
+          if (!cl.contains("clue")) {
+            cl.remove("computer");
+            break;
+          }
+          else {
+            return;
+          }
+        case "computer":
+          if (!cl.contains("clue") && !cl.contains("human")) {
+            break;
+          }
+          else {
+            return;
+          }
+        default:
+          console.error("UNKNOWN KIND: ", kind);
+      }
     }
     switch (mode) {
       case "normal":
@@ -553,17 +574,47 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
           content = as_array.join('');
         }
         cell.innerHTML = content;
+        break;
+      case "corner":
+        var content = "";
+        if (value != '') {
+          var found_value = false;
+          for(var pos_id in corner_cells[id]) {
+            var pos_content = corner_cells[id][pos_id].innerHTML;
+            if (pos_content == value) {
+              found_value = true;
+            }
+            else {
+              content += pos_content;
+            }
+          }
+          if (!found_value) {
+            content += value;
+          }
+        }
+        var as_array = content.split('');
+        as_array.sort();
+        content = as_array.join('');
+        for(var pos_id in corner_cells[id]) {
+          corner_cells[id][pos_id].innerHTML = content.charAt(pos_id);
+        }
+        break;
     }
-    if (value == '') {
-      cl.remove("clue", "human", "computer");
+    if (cl){
+      if (value == '') {
+        cl.remove("clue", "human", "computer");
+      }
+      else {
+        cl.add(kind);
+      }
     }
-    else {
-      cl.add(kind);
-    }
-    if (array_to_delete) {
-      var del = array_to_delete[id];
+    if (mode == "normal") {
+      var del = middle_cells[id];
       del.classList.remove("clue", "human", "computer");
       del.innerHTML = '';
+      for(var pos_id in corner_cells[id]) {
+        corner_cells[id][pos_id].innerHTML = '';
+      }
     }
   }
 
