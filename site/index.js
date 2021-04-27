@@ -6,6 +6,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var cells = new Array();
   var middle_cells = new Array();
   var corner_cells = new Array();
+  var background_cells = new Array();
   var solution_count = document.getElementById('count');
   var app_mode = 'setter';
   var app_mode_text = document.getElementById('app_mode');
@@ -14,12 +15,12 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var key_number_button = document.getElementById("key_number");
   var key_middle_button = document.getElementById("key_middle");
   var key_corner_button = document.getElementById("key_corner");
-  //var key_color_button = document.getElementById("key_color");
+  var key_color_button = document.getElementById("key_color");
 
   var key_number = document.getElementById("number");
   var key_middle = document.getElementById("middle-number");
   var key_corner = document.getElementById("corner-number");
-  //var key_color = document.getElementById("key_color");
+  var key_color = document.getElementById("color");
 
   var setter_side = document.getElementById('setter-side');
   var selected = new Set();
@@ -112,6 +113,8 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         corner_cell_span.innerHTML = parseInt(id)+1;
         corner_in_cell.push(corner_cell_span);
       }
+
+      background_cells.push(new Array());
     }
     document.addEventListener('mousedown', () => is_mouse_down = true)
     document.addEventListener('mouseup', () => is_mouse_down = false)
@@ -185,6 +188,12 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       }
     })
 
+    Array.from(key_color.children).forEach((button, index) => {
+      button.onclick = (event) => {
+        handle_key_event(parseInt(button.innerHTML) || (index+1));
+      }
+    })
+
     function set_keyboard_mode(button, mode, keyboard) {
       button.onclick = (event) => {
         keyboard_mode = mode;
@@ -194,7 +203,53 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     set_keyboard_mode(key_number_button, "normal");
     set_keyboard_mode(key_middle_button, "middle");
     set_keyboard_mode(key_corner_button, "corner");
-    //set_keyboard_mode(key_color_button, "color");
+    set_keyboard_mode(key_color_button, "color");
+  }
+
+  function toggle_cells_color(color_index) {
+    for (let cell_id of selected) {
+      toggle_cell_color(cell_id, color_index);
+    }
+  }
+
+  function toggle_cell_color(cell_id, color_index) {
+    color_index = parseInt(color_index) || color_index;
+    var cell = cells[cell_id].parentNode;
+    var colors = background_cells[cell_id];
+    var style = "";
+    if (color_index != "Delete" && color_index != "Backspace") {
+      var pos = colors.indexOf(color_index);
+      if (pos >= 0) {
+        colors.splice(pos, 1);
+      }
+      else if (color_index >= 1 && color_index <= 9) {
+        colors.push(color_index);
+        colors.sort();
+      }
+    }
+    else {
+      colors = new Array();
+    }
+
+    if (colors.length == 1) {
+      style = `background-color: var(--solve-color-${colors[0]});`;
+    }
+    else if (colors.length > 1) {
+      style = "background: conic-gradient(";
+      var l = colors.length;
+      var step = 360 / l;
+      for(var i = 0; i < l; i++) {
+        if (i != 0) {
+          style += ",";
+        }
+        style += `var(--solve-color-${colors[i]}) ${i * step}deg ${(i+1) *step}deg`
+      }
+
+      style += ");";
+    }
+
+    cell.style = style;
+    background_cells[cell_id] = colors;
   }
 
   function update_variant_visual(){
@@ -257,6 +312,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       update_mode("normal", key_number_button, key_number);
       update_mode("middle", key_middle_button, key_middle);
       update_mode("corner", key_corner_button, key_corner);
+      update_mode("color", key_color_button, key_color);
   }
 
   function update_text_on_off(value, button) {
@@ -277,6 +333,10 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function handle_key_event(key) {
+    if (keyboard_mode == "color") {
+      toggle_cells_color(key);
+      return;
+    }
     key = parseInt(key) || key;
     var current_kind = app_mode == 'setter' ? 'clue' : 'human';
     if (Number.isInteger(key) && key >= 1 && key <= 9){

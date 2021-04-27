@@ -1,5 +1,19 @@
 @import "~water.css/out/light.min.css";
 
+:root {
+  --selection-color: brown;
+
+  --solve-color-1: RGBA(255, 155, 155, 0.8);
+  --solve-color-2: RGBA(155, 255, 155, 0.8);
+  --solve-color-3: RGBA(155, 155, 255, 0.8);
+  --solve-color-4: RGBA(243, 179, 71, 0.8);
+  --solve-color-5: RGBA(71, 243, 179, 0.8);
+  --solve-color-6: RGBA(179, 71, 243, 0.8);
+  --solve-color-7: RGBA(200, 200, 0, 0.8);
+  --solve-color-8: RGBA(200, 0, 200, 0.8);
+  --solve-color-9: RGBA(0, 200, 200, 0.8);
+}
+
 body{
   font-family: Avenir, Heveltica, sans-serif;
 }
@@ -230,6 +244,34 @@ button {
 
 #corner-number button span {
   position:absolute;
+}
+
+#color button:nth-child(1) {
+  background-color: var(--solve-color-1);
+}
+#color button:nth-child(2) {
+  background-color: var(--solve-color-2);
+}
+#color button:nth-child(3) {
+  background-color: var(--solve-color-3);
+}
+#color button:nth-child(4) {
+  background-color: var(--solve-color-4);
+}
+#color button:nth-child(5) {
+  background-color: var(--solve-color-5);
+}
+#color button:nth-child(6) {
+  background-color: var(--solve-color-6);
+}
+#color button:nth-child(7) {
+  background-color: var(--solve-color-7);
+}
+#color button:nth-child(8) {
+  background-color: var(--solve-color-8);
+}
+#color button:nth-child(9) {
+  background-color: var(--solve-color-9);
 }
 
 .delete {
