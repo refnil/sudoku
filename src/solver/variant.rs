@@ -1,4 +1,7 @@
-use std::fmt;
+ 
+use std::fmt::{Write};
+                        
+use std::collections::HashMap;
 use crate::board::{Sudoku, Variant};
 use crate::helper::Unsolvable;
 use crate::solver::{mask_iter, Solutions, Solver, SudokuSolver, Guess, OutsideSolver};
@@ -9,12 +12,82 @@ struct Thermo {
 }
 
 struct ThermoShared {
-    thermo_info: Vec<u32>,
+    thermo_info: HashMap<u32, ThermoSharedNode>,
+    thermo_init: [u32; 27],
 }
 
+struct ThermoSharedNode {
+    smaller: [u32; 3],
+    bigger: [u32; 3],
+}
+
+
 impl Thermo {
-    fn from_vec(vec: &Vec<Vec<u32>>) -> Option<Thermo>  {
-        None
+    fn from_thermos(ts: &Vec<Vec<u32>>) -> Option<(Thermo, ThermoShared)>  {
+        if ts.is_empty() {
+            return None;
+        }
+
+        let mut thermo = Thermo {
+            mask_in_thermo: [0; 3],
+        };
+
+        let mut shared = ThermoShared {
+            thermo_info: HashMap::new(),
+            thermo_init: [!0; 27],
+        };
+
+        fn apply_or(s: &mut [u32; 3], o: &[u32;3]) {
+            for i in 0..3 {
+                s[i] |= o[i];
+            }
+        }
+
+        for t in ts{
+            let mut smaller = [0; 3];
+            let mut bigger = [0;3];
+
+            let length = t.len();
+
+            for (i, c) in t.iter().enumerate() {
+                // Add to smaller part of the thermo node
+                shared.thermo_info.entry(*c)
+                    .and_modify(|n| apply_or(&mut n.smaller, &smaller))
+                    .or_insert(ThermoSharedNode {
+                        smaller, bigger
+                    });
+                let band = (c / 27) as usize;
+                let pos = c % 27;
+                smaller[band] |= 1 << pos;
+
+                // cell cell as in thermo
+                thermo.mask_in_thermo[band] |= 1 << pos;
+
+                // Remove possibilities from starting grid
+                // Remove number too small
+                println!("For cell: {} of length {}", i, length);
+                for j in 0..i {
+                    println!("removing {} because too small", j);
+                    shared.thermo_init[band + j * 3] &= !(1 << pos);
+                }
+                // Remove number too big
+                for j in (9-length+i+1)..9 {
+                    println!("removing {} because too big", j);
+                    shared.thermo_init[band + j * 3] &= !(1 << pos);
+                }
+            }
+
+            for c in t.iter().rev() {
+                // Add to bigger part of the thermo node
+                shared.thermo_info.entry(*c).and_modify(|n| apply_or(&mut n.bigger, &bigger));
+                let band = c / 27;
+                let pos = c % 27;
+                bigger[band as usize] |= 1 << pos;
+            }
+        }
+
+
+        Some((thermo, shared))
     }
 }
 
@@ -23,26 +96,17 @@ pub(crate) struct VariantSolver {
    copy : VariantSolverCopy,
 }
 
-/*
-impl fmt::Display for VariantSolver {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        //writeln!(f, "{} {} {}", self.diag_pos, self.diag_neg, self.king);
-        Ok(())
-    }
-}
-*/
-
 struct VariantSolverConstant {
     diag_pos: bool,
     diag_neg: bool,
     king: bool,
-    //thermo: Option<ThermoShared>,
+    thermo: Option<ThermoShared>,
 }
 
 #[derive(Clone,Copy)]
 struct VariantSolverCopy{
     base: SudokuSolver,
-    //thermo: Option<Thermo>,
+    thermo: Option<Thermo>,
 }
 
 #[derive(Clone,Copy)]
@@ -111,29 +175,41 @@ impl<'a> Solver for VariantSolverCopyPlus<'a> {
 
 impl VariantSolver {
     pub fn from_variant(variant: Variant) -> Result<Self, Unsolvable> {
+        let (t_c, t_s) = if let Some((c, s)) = Thermo::from_thermos(&variant.thermo) {
+            (Some(c), Some(s))
+        } 
+        else {
+            (None, None)
+        };
         let constant = VariantSolverConstant {
             diag_pos: variant.diag_pos,
             diag_neg: variant.diag_neg,
             king: variant.king,
-            //thermo: None,
+            thermo: t_s,
         };
         let copy = VariantSolverCopy {
             base: SudokuSolver::from_sudoku(variant.base)?,
-            //thermo: None
+            thermo: t_c, 
         };
-        let plus = VariantSolverCopyPlus {
-            constant : &constant,
-            base: copy.clone(),
+        let final_copy = {
+            let mut plus = VariantSolverCopyPlus {
+                constant : &constant,
+                base: copy,
+            };
+            plus.init_thermo();
+            plus.find_naked_singles()?;
+            //println!("{}",plus.base.base.extract_solution().display_block());
+            if !plus.is_ok_variants() {
+                println!("Invalid from parse");
+                return Err(Unsolvable);
+            } 
+            plus.base
         };
-        if !plus.is_ok_variants() {
-            println!("Invalid from parse");
-            Err(Unsolvable)
-        } else {
-            Ok(Self {
-                constant,
-                copy
-            })
-        }
+
+        Ok(Self {
+            constant,
+            copy: final_copy,
+        })
     }
 }
 
@@ -164,7 +240,7 @@ impl<'a> VariantSolverCopyPlus<'a> {
     }
 
     fn is_ok_variants(&self) -> bool {
-        (!self.has_diag_pos() || self.is_ok_diag_pos()) && (!self.has_diag_neg() || self.is_ok_diag_neg()) && (!self.has_king() || self.is_ok_king())
+        (!self.has_diag_pos() || self.is_ok_diag_pos()) && (!self.has_diag_neg() || self.is_ok_diag_neg()) && (!self.has_king() || self.is_ok_king()) && self.is_ok_thermo()
     }
 
     fn is_ok_diag_pos(&self) -> bool {
@@ -400,5 +476,55 @@ impl<'a> VariantSolverCopyPlus<'a> {
             base.poss_cells[2 + 3 * number] &= get_mask(18, band3 >> 9);
         }
         Ok(())
+    }
+
+    fn init_thermo(&mut self) {
+        if let Some(t) = &self.constant.thermo {
+            for i in 0..27 {
+                self.base.base.poss_cells[i] &= t.thermo_init[i];
+            }
+        }
+    }
+
+    fn check_thermo(&mut self) {
+    }
+
+    fn is_ok_thermo(&self) -> bool {
+        if let Some(t) = &self.constant.thermo {
+            let pos_cells = &self.base.base.poss_cells;
+            let unsolved = &self.base.base.unsolved_cells;
+            for (key, val) in t.thermo_info.iter() {
+                let mut hit_cell = false;
+                let mut hit_cell_number = 55;
+                let band = (key / 27) as usize;
+                let pos = key % 27;
+
+                for n in 0..9 {
+                    let n_band_offset = (n * 3) as usize;
+                    let cur_hit_cell = (pos_cells[band + n_band_offset] & !unsolved[band] & 1 << pos) != 0;
+                    hit_cell |= cur_hit_cell;
+                    if cur_hit_cell {
+                        hit_cell_number = n+1;
+                    }
+                    let mut cur_hit_small = false;
+                    let mut s = String::new();
+                    //let mut cur_hit_big = false;
+                    for b in 0..3 {
+                        let bi = b as usize;
+                        let pci = bi + n_band_offset;
+                        writeln!(&mut s, "{:#032b}", (pos_cells[pci] & !unsolved[b] & val.smaller[bi]));
+                        cur_hit_small |= (pos_cells[pci] & !unsolved[b] & val.smaller[bi]) != 0;
+                        //cur_hit_big |= (pos_cells[pci] & val.bigger[bi]) != 0;
+                    }
+                    if hit_cell && cur_hit_small {
+                        print!("{}", s);
+                        println!("n {} key {} cur_hit {} hit_number {}", n+1, key, cur_hit_cell, hit_cell_number); 
+                        println!("{}", self.base.base.extract_solution().display_block());
+                        return false;
+                    }
+                }
+            }
+        }
+        true
     }
 }

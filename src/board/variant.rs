@@ -18,6 +18,11 @@ fn is_thermo_valid(thermo: &Vec<u32>) -> bool {
         return false;
     }
 
+    if thermo.len() > 9 {
+        println!("thermo is too long");
+        return false;
+    }
+
     if !thermo.iter().all(|n| n < &81) {
         println!("Not all number are smaller than 81");
         return false;
@@ -34,25 +39,33 @@ fn is_thermo_valid(thermo: &Vec<u32>) -> bool {
 
     let zipped = thermo.iter().zip(thermo.iter().skip(1));
     for (&c1, &c2) in zipped {
-        if c1 - 1 == c2 {
-            if c1 % 9 == 0 {
-                return false;
-            }
+
+        if c1 == c2 + 1 && c1 % 9 != 0{
+            // going to the left
         }
-        else if c1 + 1 == c2 {
-            if c1 % 9 == 8 {
-                return false;
-            }
+        else if c1 == c2 + 10 && c1 % 9 != 0{
+            // going to the top left
         }
-        else if c1 - 9 == c2 {
-            if c1 < 9 {
-                return false;
-            }
+        else if c1 + 8 == c2 && c1 % 9 != 0{
+            // going to the bottom left
+        }
+        else if c1 + 1 == c2 && c1 % 9 != 8{
+            // going to the right
+        }
+        else if c1 == c2 + 8 && c1 % 9 != 8{
+            // going to the top right
+        }
+        else if c1 + 10 == c2 && c1 % 9 != 8{
+            // going to the bottom right
+        }
+        else if c1 == c2 + 9 {
+            // going up
         }
         else if c1 + 9 == c2 {
-            if c1 >= 80 {
-                return false;
-            }
+            // going down
+        }
+        else {
+            return false;
         }
     }
 
@@ -189,6 +202,7 @@ mod test {
         ok_with_variant("diag_pos");
         ok_with_variant("diag_pos;diag_neg");
         ok_with_variant("king");
+        ok_with_variant("thermo|1|2");
     }
 
     #[test]
@@ -202,5 +216,29 @@ mod test {
         assert!(is_thermo_valid(&vec![9,0]));
         assert!(!is_thermo_valid(&vec![80,89]));
         assert!(is_thermo_valid(&vec![9,18,19,10]));
+        assert!(is_thermo_valid(&vec![0,10,20,30]));
+        assert!(!is_thermo_valid(&vec![0,1,2,3,4,5,6,7,8,16,17]));
+    }
+
+    #[test]
+    fn test_thermo() {
+        fn cok(l: &str, t: &str) {}
+        fn ok(line: &str, thermos: &str) {
+            let init = &(String::from(line) + ";thermo" + thermos);
+            let v = Variant::from_str_line(init).unwrap();
+            //println!("{}", v.display_block());
+            assert_eq!(v.solutions_count_up_to(2), 1);
+        }
+        ok("..........59..7..14........9.28...1......52...1..4....7.136.82..9.7.............3",
+            "|0|1|2|3|4|5|6|7|8"
+        );
+        ok(
+            ".9.6.4.5.....7....6.......7.3.....2...1...9...8.....7.5.......4....4.....4.1.5.3.",
+            "|0|10|20|30|40|50|60|70|80;thermo|64|56|48|40|32|24|16"
+        );
+        ok(
+            "1......5...........2.8........274.....3...9.....193........6.4...........6......3",
+            "|4|3|2|1;thermo|16|15|14|13|12|11|10;thermo|76|77|78|79;thermo|64|65|66|67|68|69|70"
+        );
     }
 }
