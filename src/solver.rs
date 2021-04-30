@@ -121,6 +121,36 @@ pub(crate) struct Guess {
     pub mask: u32,
 }
 
+pub(crate) trait OutsideSolver {
+    fn solutions_up_to(self, limit: usize) -> Vec<Sudoku>;
+    fn solutions_up_to_buffer(self, buffer: &mut [[u8; 81]], limit: usize) -> usize;
+    fn solutions_count_up_to(self, limit: usize) -> usize;
+}
+
+impl<P> OutsideSolver for P where P: Solver+Copy+Sized {
+    /// Find and return up to `limit` solutions
+    fn solutions_up_to(self, limit: usize) -> Vec<Sudoku> {
+        let mut solutions = vec![];
+        self._solutions_up_to(limit, &mut Solutions::Vector(&mut solutions));
+        solutions
+    }
+
+    /// Count up to `limit` solutions and save up to buffer.len() of them
+    /// in `buffer`. Returns number of solutions.
+    fn solutions_up_to_buffer(self, buffer: &mut [[u8; 81]], limit: usize) -> usize {
+        let mut solutions = Solutions::Buffer(buffer, 0);
+        self._solutions_up_to(limit, &mut solutions);
+        solutions.len()
+    }
+
+    /// Find up to `limit` solutions and return count
+    fn solutions_count_up_to(self, limit: usize) -> usize {
+        let mut solutions = Solutions::Count(0);
+        self._solutions_up_to(limit, &mut solutions);
+        solutions.len()
+    }
+}
+
 pub(crate) trait Solver {
     fn ensure_constraints(&mut self) -> Result<(), Unsolvable>;
     fn find_naked_singles(&mut self) -> Result<bool, Unsolvable>;
@@ -131,29 +161,9 @@ pub(crate) trait Solver {
     fn insert_candidate_by_mask(&mut self, guess: &Guess);
     fn remove_candidate_by_mask(&mut self, guess: &Guess);
 
-    /// Find and return up to `limit` solutions
-    fn solutions_up_to(self, limit: usize) -> Vec<Sudoku>  where Self: Sized+Copy {
-        let mut solutions = vec![];
-        self._solutions_up_to(limit, &mut Solutions::Vector(&mut solutions));
-        solutions
-    }
-
-    /// Count up to `limit` solutions and save up to buffer.len() of them
-    /// in `buffer`. Returns number of solutions.
-    fn solutions_up_to_buffer(self, buffer: &mut [[u8; 81]], limit: usize) -> usize where Self: Sized+Copy{
-        let mut solutions = Solutions::Buffer(buffer, 0);
-        self._solutions_up_to(limit, &mut solutions);
-        solutions.len()
-    }
-
-    /// Find up to `limit` solutions and return count
-    fn solutions_count_up_to(self, limit: usize) -> usize where Self:Sized+Copy {
-        let mut solutions = Solutions::Count(0);
-        self._solutions_up_to(limit, &mut solutions);
-        solutions.len()
-    }
-
     fn _solutions_up_to(mut self, limit: usize, solutions: &mut Solutions) where Self: Sized+Copy {
+        println!("_solution");
+        self.ensure_constraints();
         if self.find_naked_singles().is_err() {
             return;
         }
@@ -188,6 +198,7 @@ pub(crate) trait Solver {
             self.remove_candidate_by_mask(&guess);
         }
     }
+
 
     /// Repeatedly use the strategies and backtracking to find solutions until
     /// the limit is reached or no more solutions exist.

@@ -9,6 +9,54 @@ pub struct Variant {
     pub diag_pos: bool,
     pub diag_neg: bool,
     pub king: bool,
+    pub thermo: Vec<Vec<u32>>,
+}
+
+fn is_thermo_valid(thermo: &Vec<u32>) -> bool {
+    if thermo.len() < 2 {
+        println!("thermo is too short");
+        return false;
+    }
+
+    if !thermo.iter().all(|n| n < &81) {
+        println!("Not all number are smaller than 81");
+        return false;
+    }
+    
+    let mut copy = thermo.clone();
+    copy.sort();
+    copy.dedup();
+
+    if copy.len() != thermo.len() {
+        println!("Thermo crossed itself");
+        return false;
+    }
+
+    let zipped = thermo.iter().zip(thermo.iter().skip(1));
+    for (&c1, &c2) in zipped {
+        if c1 - 1 == c2 {
+            if c1 % 9 == 0 {
+                return false;
+            }
+        }
+        else if c1 + 1 == c2 {
+            if c1 % 9 == 8 {
+                return false;
+            }
+        }
+        else if c1 - 9 == c2 {
+            if c1 < 9 {
+                return false;
+            }
+        }
+        else if c1 + 9 == c2 {
+            if c1 >= 80 {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 impl Variant {
@@ -18,6 +66,7 @@ impl Variant {
             diag_pos: false,
             diag_neg: false,
             king: false,
+            thermo: Vec::new(),
         }
     }
 
@@ -25,12 +74,12 @@ impl Variant {
         let sudoku = Sudoku::from_str_line(&s[0..81])?;
         let mut variant = Self::from_sudoku(sudoku);
         for sub in s.split(';') {
-            variant.try_parse_variant(sub);
+            variant.try_parse_variant(sub)?;
         }
         Ok(variant)
     }
 
-    fn try_parse_variant(&mut self, s: &str) {
+    fn try_parse_variant(&mut self, s: &str) -> Result<(), LineParseError> {
         if s.starts_with("diag_pos") {
             self.diag_pos = true
         }
@@ -40,6 +89,14 @@ impl Variant {
         else if s.starts_with("king") {
             self.king = true
         }
+        else if s.starts_with("thermo") {
+            let thermo: Vec<u32> = s.split('|').skip(1).map(|s| s.parse().unwrap()).collect();
+            if !is_thermo_valid(&thermo) {
+                return Err(LineParseError::MissingCommentDelimiter);
+            }
+            self.thermo.push(thermo);
+        }
+        Ok(())
     }
 
     pub fn solutions_up_to(self, limit: usize) -> Vec<Sudoku> {
@@ -132,5 +189,18 @@ mod test {
         ok_with_variant("diag_pos");
         ok_with_variant("diag_pos;diag_neg");
         ok_with_variant("king");
+    }
+
+    #[test]
+    fn thermo_validation() {
+        assert!(!is_thermo_valid(&vec![]));
+        assert!(!is_thermo_valid(&vec![3]));
+        assert!(!is_thermo_valid(&vec![1, 4, 5, 100]));
+        assert!(!is_thermo_valid(&vec![1,2,3,4,5,4]));
+        assert!(!is_thermo_valid(&vec![7,8,9]));
+        assert!(!is_thermo_valid(&vec![9,8,7]));
+        assert!(is_thermo_valid(&vec![9,0]));
+        assert!(!is_thermo_valid(&vec![80,89]));
+        assert!(is_thermo_valid(&vec![9,18,19,10]));
     }
 }
