@@ -172,8 +172,17 @@ span {
   padding-right: 2.5vw;
 }
 
+.svg {
+  z-index: -1;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+}
+
 .diag {
-  z-index: -2;
+  z-index: -3;
   position: absolute;
   top: 0px;
   left: 0px;

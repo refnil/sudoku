@@ -50,6 +50,8 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var puzzle_message_edit = document.getElementById("puzzle_message_edit");
   var puzzle_variant_rule = document.getElementById("puzzle_variant_rule");
 
+  var svg = document.getElementById("svg");
+
   function render_selected(){
     for(var i = 0; i < cells.length; i++){
       var full_cell = cells[i].parentElement;
@@ -708,4 +710,36 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
   update_variant_visual();
 
+  function draw_thermo(numbers) {
+    var n = numbers[0];
+    var line= (n % 9) * 100 + 50;
+    var col= Math.floor(n / 9) * 100 + 50;
+    var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttributeNS(null, "r", 35);
+    circle.setAttributeNS(null, "cx", line);
+    circle.setAttributeNS(null, "cy", col);
+    circle.setAttributeNS(null, "stroke", "FireBrick");
+    circle.setAttributeNS(null, "stroke-width", "4");
+    circle.setAttributeNS(null, "fill", "rgb(255,255,255)");
+
+    var d_path = `M ${line},${col} `;
+    for(var i = 1; i < numbers.length; i++) {
+      var n = numbers[i];
+      var line= (n % 9) * 100 + 50;
+      var col= Math.floor(n / 9) * 100 + 50;
+      d_path += `L ${line}, ${col}`;
+    }
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttributeNS(null, "d", d_path);
+    path.setAttributeNS(null, "fill", "none");
+    path.setAttributeNS(null, "stroke", "FireBrick");
+    path.setAttributeNS(null, "stroke-width", "12");
+    path.setAttributeNS(null, "stroke-linejoin", "round");
+    path.setAttributeNS(null, "stroke-linecap", "round");
+    svg.appendChild(path);
+    svg.appendChild(circle);
+  }
+  draw_thermo([2,3,4,14,13]);
+  draw_thermo([0,10,20,30,40,50,60,70,80]);
+  draw_thermo([64,56,48,40,32,24,16]);
 });
