@@ -577,6 +577,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     diag_pos = false;
     diag_neg = false;
     king = false;
+    thermo_data = new Array();
     data.split(';').forEach((field) => {
       if (field.startsWith('clue')){
         set_line(field.slice(4), "clue");
@@ -594,7 +595,6 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         king = true;
       }
       else if(field.startsWith('thermo')){
-        thermo_data = new Array();
         var thermo = new Array();
         field.split('|').forEach((number) => {
           var number = parseInt(number) || null;
