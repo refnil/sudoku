@@ -1,11 +1,10 @@
 { 
 sources ? import ./nix/sources.nix, 
-pkgs ? import sources.nixpkgs { overlays = [ mozilla-overlay ]; },
-mozilla-overlay ? import sources.nixpkgs-mozilla,
+pkgs ? import sources.nixpkgs { overlays = [ rust-overlay ]; },
+rust-overlay ? import sources.rust-overlay,
 }:
 let 
-  rust =  pkgs.latest.rustChannels.stable;
-  cargo = rust.rust.override {
+  rust =  pkgs.rust-bin.stable.latest.minimal.override {
     extensions = [
       "rustfmt-preview"
     ];
@@ -13,12 +12,9 @@ let
       "wasm32-unknown-unknown"
     ];
   };
-  rustc = rust.rustc.override {
-  };
 in pkgs.mkShell {
   buildInputs = [
-    cargo
-    rustc
+    rust
     pkgs.wasm-pack
     pkgs.nodejs
     pkgs.cargo-watch
