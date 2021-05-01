@@ -71,6 +71,12 @@ pub fn greet(name: &str) {
 }
 
 #[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn notify(notification: usize, count: usize); 
+}
+
+#[wasm_bindgen]
 pub fn solve(sudoku: &str) -> String {
     let s = Variant::from_str_line(sudoku).unwrap();
     if let Some(solved) = s.solution() {
@@ -115,18 +121,22 @@ pub fn generate() -> String {
 }
 
 #[wasm_bindgen]
-pub fn solution_count_js(sudoku: &str) -> usize {
-    fn print(n: Notification) {
-        let res = match n {
-            Notification::Ongoing(v) => false, //v % 100 == 0,
-            _ => true,
+pub fn solution_count_notify(sudoku: &str) -> usize {
+    fn forward(n: Notification) {
+        let (notification, count) = match n {
+            Notification::Ongoing(c) => (0,c),
+            Notification::Limit(c) => (1,c),
+            Notification::Final(c) => (2,c),
         };
-        if res {
-            greet(&format!("{:?}", n));
-        };
+        notify(notification, count);
     }
-    let s = Variant::from_str_line(sudoku).unwrap();
-    s.solutions_notifier_up_to(10000, &(print as fn(Notification)))
+    if let Ok(s) = Variant::from_str_line(sudoku) {
+        s.solutions_notifier_up_to(10000, &(forward as fn(Notification)))
+    }
+    else {
+        notify(3, 10000000);
+        10000000
+    }
 }
 
 #[wasm_bindgen]

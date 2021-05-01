@@ -134,7 +134,7 @@ impl OutsideSolver for Variant {
     fn solutions_notifier_up_to<'a>(self, limit: usize, function: &'a fn(Notification)) -> usize {
         VariantSolver::from_variant(self)
             .ok()
-            .map_or(0, |solver| solver.solutions_notifier_up_to(limit, function))
+            .map_or_else(|| {function(Notification::Final(0)); 0}, |solver| solver.solutions_notifier_up_to(limit, function))
     }
 }
 

@@ -851,16 +851,7 @@ import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
   function handle_sudoku_message(message) {
     message = message.data;
     if (message[0] == "solve_count") {
-      var sc = message[1];
-      if (sc == 0){
-        solution_count.innerHTML = "No solution";
-      }
-      else if(sc == 1000) {
-        solution_count.innerHTML = "1000 or more solutions";
-      }
-      else {
-        solution_count.innerHTML = sc;
-      }
+      solution_count.innerHTML = message[1];
     }
     else if(message[0] == "solve_common") {
       var res = message[1];

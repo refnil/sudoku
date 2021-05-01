@@ -1,3 +1,43 @@
+var limit = false;
+function notify(notification, count) {
+  var message = "";
+  if (count == 0) {
+    message = "No solution";
+  }
+  else {
+    switch (notification) {
+      case 0:
+        // Ongoing
+        limit = false;
+        if (count >= 5 && count % 5 != 0) {
+          return;
+        }
+        message = `${count} or more`;
+        break;
+      case 1:
+        // Limit
+        message = `Hit limit at ${count}`;
+        limit = true;
+        break;
+      case 2:
+        // Final
+        if (limit) {
+          return;
+        }
+        message = count;
+        break;
+      case 3:
+        message = "Error when parsing sudoku";
+        break;
+      default:
+        console.error("Unknown notification", notification, count);
+        return;
+    }
+  }
+  postMessage(['solve_count', message]);
+}
+console.notify = notify;
+
 import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
   function receive_message(message) {
     switch (message.data[0]) {
@@ -14,9 +54,9 @@ import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
 
   function solve_count(data) {
     var t0 = performance.now();
-    send_result('solve_count', sudoku.solution_count(data));
+    var r = sudoku.solution_count_notify(data);
     var t1 = performance.now();
-    console.log("solution count timing: ", t1-t0);
+    console.log("solution count timing: ", t1-t0, r);
   }
 
   function solve_common(data) {
