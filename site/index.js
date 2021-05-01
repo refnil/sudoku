@@ -385,6 +385,9 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     if (king) {
       content += "Two cells cannot contain the same number if a king could move between them in one move. "
     }
+    if (thermo_data.length != 0) {
+      content += "The number are growing along a thermometer from the bubble to the tip. ";
+    }
     puzzle_variant_rule.innerHTML = content;
 
     // Keyboard
