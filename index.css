@@ -172,8 +172,17 @@ span {
   padding-right: 2.5vw;
 }
 
+.svg {
+  z-index: -1;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+}
+
 .diag {
-  z-index: -2;
+  z-index: -3;
   position: absolute;
   top: 0px;
   left: 0px;
@@ -288,7 +297,7 @@ button {
   background-color: LightGreen;
 }
 
-.toggle-on::after {
+.toggle-on:not(.toggle-no-addon)::after {
   content: ": On";
 }
 
@@ -296,6 +305,32 @@ button {
   background-color: LightCoral;
 }
 
-.toggle-off::after {
+.toggle-off:not(.toggle-no-addon)::after {
   content: ": Off";
+}
+
+.toggle-edit {
+  background-color: DeepSkyBlue;
+}
+
+.toggle-edit:not(.toggle-no-addon)::after {
+  content: ": Edit";
+}
+
+.merge_button {
+  white-space: nowrap;
+}
+
+.merge_button button:first-child {
+  margin-right: 0px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.merge_button button:last-child {
+  margin-left: 0px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  padding-left: 15px;
+  padding-right: 15px;
 }
