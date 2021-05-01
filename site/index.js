@@ -311,100 +311,100 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   }
 
   function update_variant_visual(){
-      // Constraints / Variants
-      update_text_on_off(diag_pos, diag_pos_button);
-      if (diag_pos) {
-        diag_pos_vis.classList.add('diag', 'diag-pos');
-      }
-      else {
-        diag_pos_vis.classList.remove('diag-pos');
-      }
-      update_text_on_off(diag_neg, diag_neg_button);
-      if (diag_neg) {
-        diag_neg_vis.classList.add('diag', 'diag-neg');
-      }
-      else {
-        diag_neg_vis.classList.remove('diag-neg');
-      }
-      update_text_on_off(king, king_button);
+    // Constraints / Variants
+    update_text_on_off(diag_pos, diag_pos_button);
+    if (diag_pos) {
+      diag_pos_vis.classList.add('diag', 'diag-pos');
+    }
+    else {
+      diag_pos_vis.classList.remove('diag-pos');
+    }
+    update_text_on_off(diag_neg, diag_neg_button);
+    if (diag_neg) {
+      diag_neg_vis.classList.add('diag', 'diag-neg');
+    }
+    else {
+      diag_neg_vis.classList.remove('diag-neg');
+    }
+    update_text_on_off(king, king_button);
 
-      // Complex variants
-      var thermo_cl = thermo_edit.classList;
-      if (mouse_mode == "thermo")
+    // Complex variants
+    var thermo_cl = thermo_edit.classList;
+    if (mouse_mode == "thermo")
+    {
+      thermo_cl.remove("toggle-on", "toggle-off");
+      thermo_cl.add("toggle-edit");
+    }
+    else if (thermo_data.length == 0) {
+      thermo_cl.remove("toggle-edit", "toggle-on");
+      thermo_cl.add("toggle-off");
+    }
+    else {
+      thermo_cl.remove("toggle-edit", "toggle-off");
+      thermo_cl.add("toggle-on");
+    }
+
+    thermo_cl = thermo_delete.classList;
+    if (mouse_mode == "thermo_delete")
+    {
+      thermo_delete.removeAttribute("disabled");
+      thermo_cl.remove("toggle-on", "disabled");
+      thermo_cl.add("toggle-edit");
+    }
+    else if (thermo_data.length == 0) {
+      thermo_delete.setAttribute("disabled", null);
+      thermo_cl.remove("toggle-edit", "toggle-on");
+      //thermo_cl.add("disabled");
+    }
+    else {
+      thermo_delete.removeAttribute("disabled");
+      thermo_cl.remove("toggle-edit", "disabled");
+      thermo_cl.add("toggle-on");
+    }
+
+
+    // Settings
+    update_text_on_off(hide_setter, hide_setter_button);
+
+    // Puzzle informations
+    puzzle_name.innerHTML = puzzle_name_edit.value || "Sudoku";
+    if (puzzle_author_edit.value != "") {
+      puzzle_author.classList.remove("hidden");
+      puzzle_author.innerHTML = "by " + puzzle_author_edit.value;
+    }
+    else {
+      puzzle_author.classList.add("hidden");
+    }
+    puzzle_message.innerHTML = puzzle_message_edit.value;
+
+    // Variant rules
+    var content = "";
+    if (diag_neg || diag_pos) {
+      content += "Number on a shown diagonal cannot be repeated on that diagonal. "
+    }
+    if (king) {
+      content += "Two cells cannot contain the same number if a king could move between them in one move. "
+    }
+    puzzle_variant_rule.innerHTML = content;
+
+    // Keyboard
+    function update_mode(name, button, keyboard){
+      if (keyboard_mode == name)
       {
-        thermo_cl.remove("toggle-on", "toggle-off");
-        thermo_cl.add("toggle-edit");
-      }
-      else if (thermo_data.length == 0) {
-        thermo_cl.remove("toggle-edit", "toggle-on");
-        thermo_cl.add("toggle-off");
+        button.classList.add("toggle-on");
+        button.classList.remove("toggle-off");
+        keyboard.classList.remove("hidden");
       }
       else {
-        thermo_cl.remove("toggle-edit", "toggle-off");
-        thermo_cl.add("toggle-on");
+        button.classList.remove("toggle-on");
+        button.classList.add("toggle-off");
+        keyboard.classList.add("hidden");
       }
-
-      thermo_cl = thermo_delete.classList;
-      if (mouse_mode == "thermo_delete")
-      {
-        thermo_delete.removeAttribute("disabled");
-        thermo_cl.remove("toggle-on", "disabled");
-        thermo_cl.add("toggle-edit");
-      }
-      else if (thermo_data.length == 0) {
-        thermo_delete.setAttribute("disabled", null);
-        thermo_cl.remove("toggle-edit", "toggle-on");
-        //thermo_cl.add("disabled");
-      }
-      else {
-        thermo_delete.removeAttribute("disabled");
-        thermo_cl.remove("toggle-edit", "disabled");
-        thermo_cl.add("toggle-on");
-      }
-
-
-      // Settings
-      update_text_on_off(hide_setter, hide_setter_button);
-
-      // Puzzle informations
-      puzzle_name.innerHTML = puzzle_name_edit.value || "Sudoku";
-      if (puzzle_author_edit.value != "") {
-        puzzle_author.classList.remove("hidden");
-        puzzle_author.innerHTML = "by " + puzzle_author_edit.value;
-      }
-      else {
-        puzzle_author.classList.add("hidden");
-      }
-      puzzle_message.innerHTML = puzzle_message_edit.value;
-
-      // Variant rules
-      var content = "";
-      if (diag_neg || diag_pos) {
-        content += "Number on a shown diagonal cannot be repeated on that diagonal. "
-      }
-      if (king) {
-        content += "Two cells cannot contain the same number if a king could move between them in one move. "
-      }
-      puzzle_variant_rule.innerHTML = content;
-
-      // Keyboard
-      function update_mode(name, button, keyboard){
-        if (keyboard_mode == name)
-        {
-          button.classList.add("toggle-on");
-          button.classList.remove("toggle-off");
-          keyboard.classList.remove("hidden");
-        }
-        else {
-          button.classList.remove("toggle-on");
-          button.classList.add("toggle-off");
-          keyboard.classList.add("hidden");
-        }
-      }
-      update_mode("normal", key_number_button, key_number);
-      update_mode("middle", key_middle_button, key_middle);
-      update_mode("corner", key_corner_button, key_corner);
-      update_mode("color", key_color_button, key_color);
+    }
+    update_mode("normal", key_number_button, key_number);
+    update_mode("middle", key_middle_button, key_middle);
+    update_mode("corner", key_corner_button, key_corner);
+    update_mode("color", key_color_button, key_color);
   }
 
   function update_text_on_off(value, button) {
