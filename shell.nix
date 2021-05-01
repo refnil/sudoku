@@ -4,23 +4,21 @@ pkgs ? import sources.nixpkgs { overlays = [ mozilla-overlay ]; },
 mozilla-overlay ? import sources.nixpkgs-mozilla,
 }:
 let 
-  nightly-rust = pkgs.latest.rustChannels.stable;
-  rust = nightly-rust.rust.override {
+  rust =  pkgs.latest.rustChannels.stable;
+  cargo = rust.rust.override {
     extensions = [
-      "rust-src"
-      "rls-preview"
-      "clippy-preview"
       "rustfmt-preview"
-      "rust-analysis"
-      "rls-preview"
     ];
     targets = [
       "wasm32-unknown-unknown"
     ];
   };
+  rustc = rust.rustc.override {
+  };
 in pkgs.mkShell {
   buildInputs = [
-    rust
+    cargo
+    rustc
     pkgs.wasm-pack
     pkgs.nodejs
     pkgs.cargo-watch
