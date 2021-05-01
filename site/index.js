@@ -8,9 +8,17 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var corner_cells = new Array();
   var background_cells = new Array();
   var solution_count = document.getElementById('count');
+  /* Clue or solve */
   var app_mode = 'setter';
   var app_mode_text = document.getElementById('app_mode');
 
+  /* Mouse mode */
+  var mouse_mode = 'selection';
+  var mouse_add_map = new Map();
+  var mouse_clear_map = new Map();
+  var mouse_render_map = new Map();
+
+  /* Solver keyboard_mode */
   var keyboard_mode = "normal";
   var key_number_button = document.getElementById("key_number");
   var key_middle_button = document.getElementById("key_middle");
@@ -50,7 +58,10 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
   var puzzle_message_edit = document.getElementById("puzzle_message_edit");
   var puzzle_variant_rule = document.getElementById("puzzle_variant_rule");
 
-  var svg = document.getElementById("svg");
+  var thermo_surround_button = document.getElementById("thermo");
+  var thermo_edit = thermo_surround_button.children[0];
+  var thermo_delete = thermo_surround_button.children[1];
+  var thermo_data = new Array();
 
   function render_selected(){
     for(var i = 0; i < cells.length; i++){
@@ -64,26 +75,60 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     }
   }
 
+  function mouse_clear(index, shift) {
+    var f = mouse_clear_map.get(mouse_mode);
+    if (f) {
+      f(index, shift);
+    }
+  }
+
+  function mouse_add(index) {
+    var f = mouse_add_map.get(mouse_mode);
+    if (f) {
+      f(index);
+    }
+  }
+
+  function mouse_render(index) {
+    var f = mouse_render_map.get(mouse_mode);
+    if (f) {
+      f(index);
+    }
+  }
+
   function init_cells(){
     var is_mouse_down = false;
+    var last_cell_over = null;
     function cell_click(i) {
       return (event) => {
-        if (!event.shiftKey){
-          selected.clear()
-        }
-        selected.add(i)
-        render_selected()
+        mouse_clear(i, event.shiftKey);
+        mouse_add(i);
+        mouse_render(i);
       }
     }
     function cell_over(i) {
       return (event) => {
-        if(is_mouse_down){
-          selected.add(i)
-          render_selected()
-        }
+        last_cell_over = i;
+        setTimeout(() => {
+          if(i == last_cell_over && is_mouse_down){
+            mouse_add(i);
+            mouse_render(i);
+            last_cell_over = null;
+          }
+        }, 20);
       }
     }
 
+    mouse_add_map.set('selection', i => selected.add(i));
+    mouse_clear_map.set('selection', (index, shift) => {if (!shift) {selected.clear()}});
+    mouse_render_map.set('selection', () => render_selected());
+
+    mouse_add_map.set('thermo', add_thermo);
+    mouse_render_map.set('thermo', render_thermo);
+    mouse_clear_map.set('thermo', start_new_thermo);
+
+    mouse_clear_map.set('thermo_delete', remove_thermo);
+    mouse_render_map.set('thermo_delete', render_thermo);
 
     var sudoku = document.getElementById("sudoku");
     var sudoku_ul = document.createElement("ul");
@@ -168,6 +213,18 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       update_variant_visual();
       update_solution_count();
     };
+
+    thermo_edit.onclick = (event) => {
+      mouse_mode = mouse_mode == "thermo" ? "selection": "thermo";
+      update_variant_visual();
+      update_solution_count();
+    };
+
+    thermo_delete.onclick = (event) => {
+      mouse_mode = mouse_mode == "thermo_delete" ? "selection": "thermo_delete";
+      update_variant_visual();
+      update_solution_count();
+    }
 
     hide_setter_button.onclick = (event) => {
       hide_setter = !hide_setter;
@@ -270,6 +327,40 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
         diag_neg_vis.classList.remove('diag-neg');
       }
       update_text_on_off(king, king_button);
+
+      // Complex variants
+      var thermo_cl = thermo_edit.classList;
+      if (mouse_mode == "thermo")
+      {
+        thermo_cl.remove("toggle-on", "toggle-off");
+        thermo_cl.add("toggle-edit");
+      }
+      else if (thermo_data.length == 0) {
+        thermo_cl.remove("toggle-edit", "toggle-on");
+        thermo_cl.add("toggle-off");
+      }
+      else {
+        thermo_cl.remove("toggle-edit", "toggle-off");
+        thermo_cl.add("toggle-on");
+      }
+
+      thermo_cl = thermo_delete.classList;
+      if (mouse_mode == "thermo_delete")
+      {
+        thermo_delete.removeAttribute("disabled");
+        thermo_cl.remove("toggle-on", "disabled");
+        thermo_cl.add("toggle-edit");
+      }
+      else if (thermo_data.length == 0) {
+        thermo_delete.setAttribute("disabled", null);
+        thermo_cl.remove("toggle-edit", "toggle-on");
+        //thermo_cl.add("disabled");
+      }
+      else {
+        thermo_delete.removeAttribute("disabled");
+        thermo_cl.remove("toggle-edit", "disabled");
+        thermo_cl.add("toggle-on");
+      }
 
 
       // Settings
@@ -403,7 +494,13 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     for(var i = 0; i < cells.length; i++){
       set_cell(i, '', "clue");
     }
-    update_solution_count()
+    king = false;
+    diag_pos = false;
+    diag_neg = false;
+    thermo_data = new Array();
+    update_solution_count();
+    update_variant_visual();
+    render_thermo();
   }
 
   function get_line_with(selector){
@@ -431,6 +528,14 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     }
     if (king) {
       line += ";king";
+    }
+    for(var t_id in thermo_data) {
+      var thermo = thermo_data[t_id];
+      line += ";thermo";
+      for(var n_id in thermo) {
+        var number = thermo[n_id];
+        line += "|" + number;
+      }
     }
     return line;
   }
@@ -485,9 +590,21 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       else if(field.startsWith('king')){
         king = true;
       }
+      else if(field.startsWith('thermo')){
+        thermo_data = new Array();
+        var thermo = new Array();
+        field.split('|').forEach((number) => {
+          var number = parseInt(number) || null;
+          if (number != null) {
+            thermo.push(number);
+          }
+        });
+        thermo_data.push(thermo);
+      }
     });
     update_variant_visual();
     update_solution_count();
+    render_thermo();
   }
 
   function update_solution_count() {
@@ -679,6 +796,71 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     }
   }
 
+  function draw_thermo(numbers) {
+    var n = numbers[0];
+    var line= (n % 9) * 100 + 50;
+    var col= Math.floor(n / 9) * 100 + 50;
+    var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttributeNS(null, "r", 35);
+    circle.setAttributeNS(null, "cx", line);
+    circle.setAttributeNS(null, "cy", col);
+    circle.setAttributeNS(null, "stroke", "FireBrick");
+    circle.setAttributeNS(null, "stroke-width", "4");
+    circle.setAttributeNS(null, "fill", "rgb(255,255,255)");
+
+    var d_path = `M ${line},${col} `;
+    for(var i = 1; i < numbers.length; i++) {
+      var n = numbers[i];
+      var line= (n % 9) * 100 + 50;
+      var col= Math.floor(n / 9) * 100 + 50;
+      d_path += `L ${line}, ${col}`;
+    }
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttributeNS(null, "d", d_path);
+    path.setAttributeNS(null, "fill", "none");
+    path.setAttributeNS(null, "stroke", "FireBrick");
+    path.setAttributeNS(null, "stroke-width", "12");
+    path.setAttributeNS(null, "stroke-linejoin", "round");
+    path.setAttributeNS(null, "stroke-linecap", "round");
+    thermo_svg.appendChild(path);
+    thermo_svg.appendChild(circle);
+  }
+
+  function start_new_thermo(index) {
+    var new_thermo = new Array();
+    new_thermo.push(index);
+    thermo_data.push(new_thermo);
+  }
+
+  function add_thermo(index) {
+    var current_thermo = thermo_data[thermo_data.length-1];
+    if (current_thermo.length < 9 && current_thermo[current_thermo.length-1] != index){
+      current_thermo.push(index);
+    }
+  }
+
+  function render_thermo(index) {
+    thermo_svg.innerHTML = '';
+    for (const id in thermo_data) {
+      draw_thermo(thermo_data[id]);
+    }
+    if(thermo_data.length == 0){
+      mouse_mode = "selection";
+    }
+    update_variant_visual();
+  }
+
+  function remove_thermo(index) {
+    for(var id = thermo_data.length-1; id >= 0; id--) {
+      var found_index = thermo_data[id].indexOf(index);
+
+      if (found_index>= 0) {
+        thermo_data.splice(id, 1);
+        break;
+      }
+    }
+  }
+
   js.init()
   init_ui()
   init_keyboard()
@@ -709,37 +891,4 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     load_data(save);
   }
   update_variant_visual();
-
-  function draw_thermo(numbers) {
-    var n = numbers[0];
-    var line= (n % 9) * 100 + 50;
-    var col= Math.floor(n / 9) * 100 + 50;
-    var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttributeNS(null, "r", 35);
-    circle.setAttributeNS(null, "cx", line);
-    circle.setAttributeNS(null, "cy", col);
-    circle.setAttributeNS(null, "stroke", "FireBrick");
-    circle.setAttributeNS(null, "stroke-width", "4");
-    circle.setAttributeNS(null, "fill", "rgb(255,255,255)");
-
-    var d_path = `M ${line},${col} `;
-    for(var i = 1; i < numbers.length; i++) {
-      var n = numbers[i];
-      var line= (n % 9) * 100 + 50;
-      var col= Math.floor(n / 9) * 100 + 50;
-      d_path += `L ${line}, ${col}`;
-    }
-    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttributeNS(null, "d", d_path);
-    path.setAttributeNS(null, "fill", "none");
-    path.setAttributeNS(null, "stroke", "FireBrick");
-    path.setAttributeNS(null, "stroke-width", "12");
-    path.setAttributeNS(null, "stroke-linejoin", "round");
-    path.setAttributeNS(null, "stroke-linecap", "round");
-    svg.appendChild(path);
-    svg.appendChild(circle);
-  }
-  draw_thermo([2,3,4,14,13]);
-  draw_thermo([0,10,20,30,40,50,60,70,80]);
-  draw_thermo([64,56,48,40,32,24,16]);
 });
