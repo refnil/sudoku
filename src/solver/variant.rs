@@ -1,6 +1,6 @@
 use crate::board::{Sudoku, Variant};
 use crate::helper::Unsolvable;
-use crate::solver::{mask_iter, Guess, OutsideSolver, Solutions, Solver, SudokuSolver, Notification};
+use crate::solver::{mask_iter, Guess, Notification, OutsideSolver, Solutions, Solver, SudokuSolver};
 use std::collections::HashMap;
 use std::fmt::Write;
 

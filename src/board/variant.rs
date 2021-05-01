@@ -1,8 +1,8 @@
-use crate::*;
-use crate::solver::*;
-use crate::board::sudoku::{SudokuBlock};
-use crate::solver::variant::*;
+use crate::board::sudoku::SudokuBlock;
 use crate::parse_errors::{InvalidEntry, LineParseError};
+use crate::solver::variant::*;
+use crate::solver::*;
+use crate::*;
 
 pub struct Variant {
     pub base: Sudoku,
@@ -27,7 +27,7 @@ fn is_thermo_valid(thermo: &Vec<u32>) -> bool {
         println!("Not all number are smaller than 81");
         return false;
     }
-    
+
     let mut copy = thermo.clone();
     copy.sort();
     copy.dedup();
@@ -39,32 +39,23 @@ fn is_thermo_valid(thermo: &Vec<u32>) -> bool {
 
     let zipped = thermo.iter().zip(thermo.iter().skip(1));
     for (&c1, &c2) in zipped {
-
-        if c1 == c2 + 1 && c1 % 9 != 0{
+        if c1 == c2 + 1 && c1 % 9 != 0 {
             // going to the left
-        }
-        else if c1 == c2 + 10 && c1 % 9 != 0{
+        } else if c1 == c2 + 10 && c1 % 9 != 0 {
             // going to the top left
-        }
-        else if c1 + 8 == c2 && c1 % 9 != 0{
+        } else if c1 + 8 == c2 && c1 % 9 != 0 {
             // going to the bottom left
-        }
-        else if c1 + 1 == c2 && c1 % 9 != 8{
+        } else if c1 + 1 == c2 && c1 % 9 != 8 {
             // going to the right
-        }
-        else if c1 == c2 + 8 && c1 % 9 != 8{
+        } else if c1 == c2 + 8 && c1 % 9 != 8 {
             // going to the top right
-        }
-        else if c1 + 10 == c2 && c1 % 9 != 8{
+        } else if c1 + 10 == c2 && c1 % 9 != 8 {
             // going to the bottom right
-        }
-        else if c1 == c2 + 9 {
+        } else if c1 == c2 + 9 {
             // going up
-        }
-        else if c1 + 9 == c2 {
+        } else if c1 + 9 == c2 {
             // going down
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -95,14 +86,11 @@ impl Variant {
     fn try_parse_variant(&mut self, s: &str) -> Result<(), LineParseError> {
         if s.starts_with("diag_pos") {
             self.diag_pos = true
-        }
-        else if s.starts_with("diag_neg") {
+        } else if s.starts_with("diag_neg") {
             self.diag_neg = true
-        }
-        else if s.starts_with("king") {
+        } else if s.starts_with("king") {
             self.king = true
-        }
-        else if s.starts_with("thermo") {
+        } else if s.starts_with("thermo") {
             let thermo: Vec<u32> = s.split('|').skip(1).map(|s| s.parse().unwrap()).collect();
             if !is_thermo_valid(&thermo) {
                 return Err(LineParseError::MissingCommentDelimiter);
@@ -156,7 +144,8 @@ mod test {
 
     #[test]
     fn test_diag_neg() {
-        let line = "1.7...5.3.2..4197...3.......594...3..3.95...4.....6...9.5.1.7...7.5.9.8.3..2.4...;diag_neg";
+        let line =
+            "1.7...5.3.2..4197...3.......594...3..3.95...4.....6...9.5.1.7...7.5.9.8.3..2.4...;diag_neg";
         let s = Variant::from_str_line(line).unwrap();
         assert_eq!(s.diag_neg, true);
         assert_eq!(s.solutions_up_to(4).len(), 1);
@@ -164,7 +153,8 @@ mod test {
 
     #[test]
     fn test_diag_pos() {
-        let line = "..5.2...8..9..6.73.3.7..6..1....5..972.94.3.5...38..2...2.5.9...1.6.95.2....7..36;diag_pos";
+        let line =
+            "..5.2...8..9..6.73.3.7..6..1....5..972.94.3.5...38..2...2.5.9...1.6.95.2....7..36;diag_pos";
         let s = Variant::from_str_line(line).unwrap();
         assert_eq!(s.diag_pos, true);
         assert_eq!(s.solutions_up_to(4).len(), 1);
@@ -205,7 +195,9 @@ mod test {
     fn test_empty_is_possible() {
         fn ok_with_variant(variant: &str) {
             println!("Variant: {}", variant);
-            let line = String::from(".................................................................................");
+            let line = String::from(
+                ".................................................................................",
+            );
             let s = Variant::from_str_line(&(line + ";" + variant));
             assert!(s.is_ok());
             assert_eq!(s.unwrap().solutions_count_up_to(4), 4);
@@ -222,14 +214,14 @@ mod test {
         assert!(!is_thermo_valid(&vec![]));
         assert!(!is_thermo_valid(&vec![3]));
         assert!(!is_thermo_valid(&vec![1, 4, 5, 100]));
-        assert!(!is_thermo_valid(&vec![1,2,3,4,5,4]));
-        assert!(!is_thermo_valid(&vec![7,8,9]));
-        assert!(!is_thermo_valid(&vec![9,8,7]));
-        assert!(is_thermo_valid(&vec![9,0]));
-        assert!(!is_thermo_valid(&vec![80,89]));
-        assert!(is_thermo_valid(&vec![9,18,19,10]));
-        assert!(is_thermo_valid(&vec![0,10,20,30]));
-        assert!(!is_thermo_valid(&vec![0,1,2,3,4,5,6,7,8,16,17]));
+        assert!(!is_thermo_valid(&vec![1, 2, 3, 4, 5, 4]));
+        assert!(!is_thermo_valid(&vec![7, 8, 9]));
+        assert!(!is_thermo_valid(&vec![9, 8, 7]));
+        assert!(is_thermo_valid(&vec![9, 0]));
+        assert!(!is_thermo_valid(&vec![80, 89]));
+        assert!(is_thermo_valid(&vec![9, 18, 19, 10]));
+        assert!(is_thermo_valid(&vec![0, 10, 20, 30]));
+        assert!(!is_thermo_valid(&vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 16, 17]));
     }
 
     #[test]
@@ -240,20 +232,21 @@ mod test {
             //println!("{}", v.display_block());
             assert_eq!(v.solutions_count_up_to(2), 1);
         }
-        ok("..........59..7..14........9.28...1......52...1..4....7.136.82..9.7.............3",
-            "|0|1|2|3|4|5|6|7|8"
+        ok(
+            "..........59..7..14........9.28...1......52...1..4....7.136.82..9.7.............3",
+            "|0|1|2|3|4|5|6|7|8",
         );
         ok(
             ".9.6.4.5.....7....6.......7.3.....2...1...9...8.....7.5.......4....4.....4.1.5.3.",
-            "|0|10|20|30|40|50|60|70|80;thermo|64|56|48|40|32|24|16"
+            "|0|10|20|30|40|50|60|70|80;thermo|64|56|48|40|32|24|16",
         );
         ok(
             ".9.6.4.5.....7....6.......7.3.....2...1...9...8.....7.5.......4....4.....4.1.5.3.",
-            "|64|56|48|40|32|24|16;diag_neg"
+            "|64|56|48|40|32|24|16;diag_neg",
         );
         ok(
             "1......5...........2.8........274.....3...9.....193........6.4...........6......3",
-            "|4|3|2|1;thermo|16|15|14|13|12|11|10;thermo|76|77|78|79;thermo|64|65|66|67|68|69|70"
+            "|4|3|2|1;thermo|16|15|14|13|12|11|10;thermo|76|77|78|79;thermo|64|65|66|67|68|69|70",
         );
     }
 }

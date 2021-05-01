@@ -71,7 +71,7 @@ impl Solutions<'_> {
             Solutions::Vector(v) => v.len(),
             Solutions::Count(len) => *len,
             Solutions::Buffer(_, len) => *len,
-            Solutions::Notifier(len ,_) => *len,
+            Solutions::Notifier(len, _) => *len,
         }
     }
 }
@@ -135,7 +135,10 @@ pub(crate) trait OutsideSolver {
     fn solutions_notifier_up_to<'a>(self, limit: usize, function: &'a fn(Notification)) -> usize;
 }
 
-impl<P> OutsideSolver for P where P: Solver+Copy+Sized {
+impl<P> OutsideSolver for P
+where
+    P: Solver + Copy + Sized,
+{
     /// Find and return up to `limit` solutions
     fn solutions_up_to(self, limit: usize) -> Vec<Sudoku> {
         let mut solutions = vec![];
@@ -176,13 +179,16 @@ pub(crate) trait Solver {
     fn insert_candidate_by_mask(&mut self, guess: &Guess);
     fn remove_candidate_by_mask(&mut self, guess: &Guess);
 
-    fn _solutions_up_to(mut self, limit: usize, solutions: &mut Solutions) where Self: Sized+Copy {
+    fn _solutions_up_to(mut self, limit: usize, solutions: &mut Solutions)
+    where
+        Self: Sized + Copy,
+    {
         if self.find_naked_singles().is_err() {
             return;
         }
 
         if self.ensure_constraints().is_err() {
-            return
+            return;
         };
 
         if self.is_solved() {
@@ -199,7 +205,10 @@ pub(crate) trait Solver {
         }
     }
 
-    fn apply_guesses(&mut self, guesses: Vec<Guess>, limit: usize, solutions: &mut Solutions) where Self: Sized+Copy{
+    fn apply_guesses(&mut self, guesses: Vec<Guess>, limit: usize, solutions: &mut Solutions)
+    where
+        Self: Sized + Copy,
+    {
         for guess in guesses {
             let mut solver = *self;
             solver.insert_candidate_by_mask(&guess);
@@ -211,7 +220,6 @@ pub(crate) trait Solver {
             self.remove_candidate_by_mask(&guess);
         }
     }
-
 
     /// Repeatedly use the strategies and backtracking to find solutions until
     /// the limit is reached or no more solutions exist.
@@ -261,7 +269,8 @@ pub(crate) trait Solver {
             }
             None
         } else {
-            self.guess_bivalue_in_cell().or_else(||Some(self.guess_some_cell()))
+            self.guess_bivalue_in_cell()
+                .or_else(|| Some(self.guess_some_cell()))
         }
     }
 }
@@ -365,9 +374,15 @@ impl Solver for SudokuSolver {
                 if self.poss_cells[subband] & cell_mask != NONE {
                     if first {
                         first = false;
-                        ret.push(Guess{subband, mask: cell_mask});
+                        ret.push(Guess {
+                            subband,
+                            mask: cell_mask,
+                        });
                     } else {
-                        ret.push(Guess{subband, mask: cell_mask});
+                        ret.push(Guess {
+                            subband,
+                            mask: cell_mask,
+                        });
                         return Some(ret);
                     }
                 }
@@ -413,7 +428,10 @@ impl Solver for SudokuSolver {
         // check every digit
         while subband < 27 {
             if self.poss_cells[subband] & unsolved_cell != NONE {
-                ret.push(Guess{subband, mask: unsolved_cell});
+                ret.push(Guess {
+                    subband,
+                    mask: unsolved_cell,
+                });
             }
 
             subband += 3;
@@ -447,8 +465,6 @@ impl SudokuSolver {
         }
         Ok(solver)
     }
-
-
 
     /// Searches for minirows that must contain a digit because they are the only minirow
     /// in a row or block that still contains candidates and remove the candidates
@@ -550,8 +566,6 @@ impl SudokuSolver {
         Ok(())
     }
 
-
-
     /// Insert a candidate by cell and digit.
     /// Removes all conflicting candidates.
     //
@@ -609,7 +623,6 @@ impl SudokuSolver {
 
         self.poss_cells[subband] &= nonconflicting_cells_same_band(cell);
     }
-
 }
 
 // ----------------------------------------------------------------

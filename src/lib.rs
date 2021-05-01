@@ -51,22 +51,22 @@ pub mod parse_errors;
 mod solver;
 pub mod strategy;
 
+use console_error_panic_hook;
 use wasm_bindgen::prelude::*;
 use web_sys::console;
-use console_error_panic_hook;
 
+use crate::board::variant::Variant;
 pub use crate::board::Sudoku;
 pub use crate::board::Symmetry;
-use crate::board::variant::Variant;
-use crate::solver::{OutsideSolver, Notification};
+use crate::solver::{Notification, OutsideSolver};
 
 #[wasm_bindgen]
-pub fn init(){
+pub fn init() {
     console_error_panic_hook::set_once();
 }
 
 #[wasm_bindgen]
-pub fn greet(name: &str){
+pub fn greet(name: &str) {
     console::log_1(&name.into());
 }
 
@@ -76,9 +76,8 @@ pub fn solve(sudoku: &str) -> String {
     if let Some(solved) = s.solution() {
         let line: &str = &solved.to_str_line();
         return String::from(line);
-    }
-    else{
-        return String::new()
+    } else {
+        return String::new();
     }
 }
 
@@ -88,10 +87,9 @@ pub fn solve_common(sudoku: &str) -> String {
     let s = Variant::from_str_line(sudoku).unwrap();
     let vec = s.solutions_up_to(1000);
     if vec.len() == 1000 {
-       println!("Too many solution");
-       String::new() 
-    }
-    else if let Some((Sudoku(f), vs)) = vec.split_first() {
+        println!("Too many solution");
+        String::new()
+    } else if let Some((Sudoku(f), vs)) = vec.split_first() {
         let mut res: [u8; 81] = f.clone();
         for Sudoku(v) in vs {
             for i in 0..81 {
@@ -103,8 +101,7 @@ pub fn solve_common(sudoku: &str) -> String {
 
         let line: &str = &Sudoku::from_bytes(res).unwrap().to_str_line();
         String::from(line)
-    }
-    else {
+    } else {
         println!("No solution");
         String::new()
     }
@@ -138,14 +135,13 @@ pub fn solution_count(sudoku: &str) -> usize {
     s.solutions_count_up_to(1000)
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn solve_common_does_not_remove_solution() {
-        fn check(line: &str, variant: &str){
+        fn check(line: &str, variant: &str) {
             let init = &(String::from(line) + variant);
             let res = solve_common(init);
             println!("{}", line);
@@ -156,7 +152,11 @@ mod tests {
             let count_res = solution_count(res_full);
             assert!(count_init < 1000);
             assert!(count_res < 1000);
-            assert_eq!(count_init, count_res, "solve_common remove solution on line\n{}", line);
+            assert_eq!(
+                count_init, count_res,
+                "solve_common remove solution on line\n{}",
+                line
+            );
         }
         fn check_diag(line: &str) {
             check(line, ";diag_pos;diag_neg")
@@ -165,6 +165,9 @@ mod tests {
         check_diag(".1.4....33...8.5.9.......1......1..........8..........5...1........2.9...4.5.7...");
         check_diag("......7..7.2.1.......26..9...4.........9...2483.............8............6...4.79");
         check_diag("9..83.45....4..2.9.54........9..4.3.43.9....2..1...94...2....9..9......4.......2.");
-        check("..3...6..9.......1......4..................1......8......9.....8.......9..5.1.3..", ";diag_pos;diag_neg;king");
+        check(
+            "..3...6..9.......1......4..................1......8......9.....8.......9..5.1.3..",
+            ";diag_pos;diag_neg;king",
+        );
     }
 }
