@@ -59,6 +59,7 @@ use crate::board::variant::Variant;
 pub use crate::board::Sudoku;
 pub use crate::board::Symmetry;
 use crate::solver::{Notification, OutsideSolver};
+use std::collections::HashSet;
 
 #[wasm_bindgen]
 pub fn init() {
@@ -89,7 +90,6 @@ pub fn solve(sudoku: &str) -> String {
 
 #[wasm_bindgen]
 pub fn solve_common(sudoku: &str) -> String {
-    // greet(&format!("solve_common: {}", sudoku));
     let s = Variant::from_str_line(sudoku).unwrap();
     let vec = s.solutions_up_to(1000);
     if vec.len() == 1000 {
@@ -107,6 +107,30 @@ pub fn solve_common(sudoku: &str) -> String {
 
         let line: &str = &Sudoku::from_bytes(res).unwrap().to_str_line();
         String::from(line)
+    } else {
+        println!("No solution");
+        String::new()
+    }
+}
+
+#[wasm_bindgen]
+pub fn solve_common_extra(sudoku: &str) -> String {
+    let s = Variant::from_str_line(sudoku).unwrap();
+    let vec = s.solutions_up_to(1000);
+    if vec.len() == 1000 {
+        println!("Too many solution");
+        String::new()
+    } else if vec.len() > 0 {
+        let mut sets = Vec::new();
+        for i in 0..81 {
+            sets.push(HashSet::new());
+        }
+        for Sudoku(v) in vec {
+            for i in 0..81 {
+                sets[i].insert(v[i]);
+            }
+        }
+        sets.iter().map(|s| s.iter().map(|n| n.to_string()).collect::<Vec<_>>().concat() + ";").collect::<Vec<_>>().concat()
     } else {
         println!("No solution");
         String::new()

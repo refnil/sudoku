@@ -854,11 +854,31 @@ import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
       solution_count.innerHTML = message[1];
     }
     else if(message[0] == "solve_common") {
+      console.log(message[1]);
+      /*
       var res = message[1];
       if (res.length != 81){
         return
       }
       set_line(res, "computer");
+      */
+      var cs = message[1].split(';');
+      for (var i = 0; i < 81; i++){
+        var c = cs[i];
+        if (c.length == 0) {
+          console.error("Impossible situation on cell: ", i, cs);
+        }
+        else if (c.length == 1) {
+          set_cell(i, c, "computer", "normal");
+        }
+        else if (c.length < 5) {
+          set_cell(i, '', "computer", "normal");
+          for (var l = 0; l < c.length; l++) {
+            set_cell(i, c[l], "computer", "middle");
+          }
+        }
+      }
+      
       // OPTIONAL: useful to debug solve_common
       update_solution_count();
     }

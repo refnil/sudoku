@@ -60,7 +60,7 @@ import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
   }
 
   function solve_common(data) {
-    send_result('solve_common', sudoku.solve_common(data));
+    send_result('solve_common', sudoku.solve_common_extra(data));
   }
 
   function send_result(name, return_data) {
