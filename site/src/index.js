@@ -1,7 +1,7 @@
 'use strict';
 import "./index.css"
 
-import("./node_modules/sudoku/sudoku.js").then((js) => {
+import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
   var solve_only = false;
   var cells = new Array();
   var middle_cells = new Array();
@@ -621,19 +621,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       return;
     }
 
-    var t0 = performance.now();
-    var sc = js.solution_count_js(get_current_line());
-    if (sc == 0){
-      solution_count.innerHTML = "No solution";
-    }
-    else if(sc == 1000) {
-      solution_count.innerHTML = "1000 or more solutions";
-    }
-    else {
-      solution_count.innerHTML = sc;
-    }
-    var t1 = performance.now();
-    console.log("solution count timing: ", t1-t0)
+    sudoku_worker.postMessage(['solve_count', get_current_line()]);
   }
 
   function get_url(){
@@ -662,16 +650,11 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
 
 
   function solve_current(){
-    var res = js.solve_common(get_current_line())
-    if (res.length != 81){
-      return
-    }
-    set_line(res, "computer");
-    update_solution_count();
+    sudoku_worker.postMessage(['solve_common', get_current_line()]);
   }
 
   function generate_new() {
-    set_line(js.generate(), "clue")
+    set_line(sudoku.generate(), "clue")
   }
 
   function set_line(line, kind = "human"){
@@ -851,6 +834,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
       mouse_mode = "selection";
     }
     update_variant_visual();
+    update_solution_count();
   }
 
   function remove_thermo(index) {
@@ -864,7 +848,36 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     }
   }
 
-  js.init()
+  function handle_sudoku_message(message) {
+    message = message.data;
+    if (message[0] == "solve_count") {
+      var sc = message[1];
+      if (sc == 0){
+        solution_count.innerHTML = "No solution";
+      }
+      else if(sc == 1000) {
+        solution_count.innerHTML = "1000 or more solutions";
+      }
+      else {
+        solution_count.innerHTML = sc;
+      }
+    }
+    else if(message[0] == "solve_common") {
+      var res = message[1];
+      if (res.length != 81){
+        return
+      }
+      set_line(res, "computer");
+      update_solution_count();
+    }
+    else {
+      console.error("Message not handled: ", message);
+    }
+  }
+
+  var sudoku_worker = new Worker(new URL('./sudoku-smart.js', import.meta.url));
+  sudoku_worker.onmessage = handle_sudoku_message;
+
   init_ui()
   init_keyboard()
   var params = new URLSearchParams(window.location.search);
@@ -894,4 +907,5 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     load_data(save);
   }
   update_variant_visual();
-});
+  update_solution_count();
+})

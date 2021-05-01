@@ -121,7 +121,7 @@ pub fn generate() -> String {
 pub fn solution_count_js(sudoku: &str) -> usize {
     fn print(n: Notification) {
         let res = match n {
-            Notification::Ongoing(v) => v % 100 == 0,
+            Notification::Ongoing(v) => false, //v % 100 == 0,
             _ => true,
         };
         if res {

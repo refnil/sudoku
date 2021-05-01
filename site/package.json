@@ -1,9 +1,9 @@
 {
   "scripts": {
-    "serve": "webpack-dev-server",
-    "serve-prod": "webpack-dev-server --config webpack.config.production.js",
-    "build": "webpack",
-    "build-prod": "webpack --config webpack.config.production.js"
+    "serve": "webpack serve --config webpack.dev.js",
+    "serve-prod": "webpack serve --config webpack.prod.js",
+    "build": "webpack build --config webpack.dev.js",
+    "build-prod": "webpack build --config webpack.prod.js"
   },
   "dependencies": {
     "sudoku": "file:../pkg",
@@ -12,8 +12,7 @@
   "devDependencies": {
     "css-loader": "^5.2.4",
     "style-loader": "^2.0.0",
-    "webpack": "^4.25.1",
-    "webpack-cli": "^3.1.2",
-    "webpack-dev-server": "^3.1.10"
+    "webpack": "^5.36.2",
+    "webpack-cli": "^4.6.0"
   }
 }

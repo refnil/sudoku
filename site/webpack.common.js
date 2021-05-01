@@ -1,11 +1,17 @@
 const path = require('path');
 module.exports = {
-  entry: "./index.js",
+  entry: {
+    "index": "./src/index.js",
+    "sudoku-caller": "./src/sudoku-caller.js",
+    "sudoku-smart": "./src/sudoku-smart.js",
+  },
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "index.js",
+    filename: "[name].js",
   },
-  mode: "production",
+  experiments: {
+    syncWebAssembly: true
+  },
   module: {
     rules: [
       {
