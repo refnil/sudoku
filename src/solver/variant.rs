@@ -1,6 +1,6 @@
 use crate::board::{Sudoku, Variant};
 use crate::helper::Unsolvable;
-use crate::solver::{mask_iter, Guess, OutsideSolver, Solutions, Solver, SudokuSolver};
+use crate::solver::{mask_iter, Guess, OutsideSolver, Solutions, Solver, SudokuSolver, Notification};
 use std::collections::HashMap;
 use std::fmt::Write;
 
@@ -141,6 +141,13 @@ impl OutsideSolver for VariantSolver {
             base: self.copy,
         };
         solver.solutions_count_up_to(limit)
+    }
+    fn solutions_notifier_up_to<'a>(self, limit: usize, function: &'a fn(Notification)) -> usize {
+        let solver = VariantSolverCopyPlus {
+            constant: &self.constant,
+            base: self.copy,
+        };
+        solver.solutions_notifier_up_to(limit, function)
     }
 }
 

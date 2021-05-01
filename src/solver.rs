@@ -49,15 +49,21 @@ const NONE: u32 = 0;
 const ALL: u32 = 0o777_777_777;
 const LOW9: u32 = 0o000_000_777;
 
-// When the solver finds a solution it can save it or just count.
-// The latter is marginally faster.
-pub(crate) enum SolutionsGeneral<'a, T> {
-    Count(usize),
-    Vector(&'a mut Vec<T>),
-    Buffer(&'a mut [[u8; 81]], usize),
+#[derive(Debug)]
+pub(crate) enum Notification {
+    Ongoing(usize),
+    Limit(usize),
+    Final(usize),
 }
 
-type Solutions<'a> = SolutionsGeneral<'a, Sudoku>;
+// When the solver finds a solution it can save it or just count.
+// The latter is marginally faster.
+pub(crate) enum Solutions<'a> {
+    Count(usize),
+    Vector(&'a mut Vec<Sudoku>),
+    Buffer(&'a mut [[u8; 81]], usize),
+    Notifier(usize, &'a fn(Notification)),
+}
 
 impl Solutions<'_> {
     fn len(&self) -> usize {
@@ -65,6 +71,7 @@ impl Solutions<'_> {
             Solutions::Vector(v) => v.len(),
             Solutions::Count(len) => *len,
             Solutions::Buffer(_, len) => *len,
+            Solutions::Notifier(len ,_) => *len,
         }
     }
 }
@@ -125,6 +132,7 @@ pub(crate) trait OutsideSolver {
     fn solutions_up_to(self, limit: usize) -> Vec<Sudoku>;
     fn solutions_up_to_buffer(self, buffer: &mut [[u8; 81]], limit: usize) -> usize;
     fn solutions_count_up_to(self, limit: usize) -> usize;
+    fn solutions_notifier_up_to<'a>(self, limit: usize, function: &'a fn(Notification)) -> usize;
 }
 
 impl<P> OutsideSolver for P where P: Solver+Copy+Sized {
@@ -149,6 +157,13 @@ impl<P> OutsideSolver for P where P: Solver+Copy+Sized {
         self._solutions_up_to(limit, &mut solutions);
         solutions.len()
     }
+
+    fn solutions_notifier_up_to<'a>(self, limit: usize, function: &'a fn(Notification)) -> usize {
+        let mut solutions = Solutions::Notifier(0, function);
+        self._solutions_up_to(limit, &mut solutions);
+        function(Notification::Final(solutions.len()));
+        solutions.len()
+    }
 }
 
 pub(crate) trait Solver {
@@ -162,8 +177,6 @@ pub(crate) trait Solver {
     fn remove_candidate_by_mask(&mut self, guess: &Guess);
 
     fn _solutions_up_to(mut self, limit: usize, solutions: &mut Solutions) where Self: Sized+Copy {
-        println!("_solution");
-        self.ensure_constraints();
         if self.find_naked_singles().is_err() {
             return;
         }
@@ -206,6 +219,12 @@ pub(crate) trait Solver {
     fn _solve(&mut self, limit: usize, solutions: &mut Solutions) -> Result<(), Unsolvable> {
         debug_assert!(solutions.len() <= limit);
         if solutions.len() == limit {
+            match solutions {
+                Solutions::Notifier(count, notifier) => {
+                    notifier(Notification::Limit(*count));
+                }
+                _ => {}
+            }
             return Err(Unsolvable); // not really, but it forces a recursion stop
         }
         loop {
@@ -234,6 +253,10 @@ pub(crate) trait Solver {
                         *sudoku_slot = self.extract_solution().to_bytes();
                     }
                     *len += 1;
+                }
+                Solutions::Notifier(count, notifier) => {
+                    *count += 1;
+                    notifier(Notification::Ongoing(*count));
                 }
             }
             None

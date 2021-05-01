@@ -622,7 +622,7 @@ import("./node_modules/sudoku/sudoku.js").then((js) => {
     }
 
     var t0 = performance.now();
-    var sc = js.solution_count(get_current_line());
+    var sc = js.solution_count_js(get_current_line());
     if (sc == 0){
       solution_count.innerHTML = "No solution";
     }

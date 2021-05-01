@@ -112,18 +112,6 @@ impl Variant {
         Ok(())
     }
 
-    pub fn solutions_up_to(self, limit: usize) -> Vec<Sudoku> {
-        VariantSolver::from_variant(self)
-            .ok()
-            .map_or(vec![], |solver| solver.solutions_up_to(limit))
-    }
-
-    pub fn solutions_count_up_to(self, limit: usize) -> usize {
-        VariantSolver::from_variant(self)
-            .ok()
-            .map_or(0, |solver| solver.solutions_count_up_to(limit))
-    }
-
     /// Solve sudoku and return solution if solution is unique.
     pub fn solution(self) -> Option<Sudoku> {
         let solutions = self.solutions_up_to(2);
@@ -135,6 +123,30 @@ impl Variant {
 
     pub fn display_block(&self) -> SudokuBlock {
         self.base.display_block()
+    }
+}
+
+impl OutsideSolver for Variant {
+    fn solutions_count_up_to(self, limit: usize) -> usize {
+        VariantSolver::from_variant(self)
+            .ok()
+            .map_or(0, |solver| solver.solutions_count_up_to(limit))
+    }
+
+    fn solutions_up_to(self, limit: usize) -> Vec<Sudoku> {
+        VariantSolver::from_variant(self)
+            .ok()
+            .map_or(vec![], |solver| solver.solutions_up_to(limit))
+    }
+    fn solutions_up_to_buffer(self, buffer: &mut [[u8; 81]], limit: usize) -> usize {
+        VariantSolver::from_variant(self)
+            .ok()
+            .map_or(0, |solver| solver.solutions_up_to_buffer(buffer, limit))
+    }
+    fn solutions_notifier_up_to<'a>(self, limit: usize, function: &'a fn(Notification)) -> usize {
+        VariantSolver::from_variant(self)
+            .ok()
+            .map_or(0, |solver| solver.solutions_notifier_up_to(limit, function))
     }
 }
 

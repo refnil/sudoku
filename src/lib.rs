@@ -58,6 +58,7 @@ use console_error_panic_hook;
 pub use crate::board::Sudoku;
 pub use crate::board::Symmetry;
 use crate::board::variant::Variant;
+use crate::solver::{OutsideSolver, Notification};
 
 #[wasm_bindgen]
 pub fn init(){
@@ -117,10 +118,26 @@ pub fn generate() -> String {
 }
 
 #[wasm_bindgen]
+pub fn solution_count_js(sudoku: &str) -> usize {
+    fn print(n: Notification) {
+        let res = match n {
+            Notification::Ongoing(v) => v % 100 == 0,
+            _ => true,
+        };
+        if res {
+            greet(&format!("{:?}", n));
+        };
+    }
+    let s = Variant::from_str_line(sudoku).unwrap();
+    s.solutions_notifier_up_to(10000, &(print as fn(Notification)))
+}
+
+#[wasm_bindgen]
 pub fn solution_count(sudoku: &str) -> usize {
     let s = Variant::from_str_line(sudoku).unwrap();
     s.solutions_count_up_to(1000)
 }
+
 
 #[cfg(test)]
 mod tests {
