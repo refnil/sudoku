@@ -868,6 +868,7 @@ import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
         return
       }
       set_line(res, "computer");
+      // OPTIONAL: useful to debug solve_common
       update_solution_count();
     }
     else {

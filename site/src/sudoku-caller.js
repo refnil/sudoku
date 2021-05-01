@@ -1,6 +1,5 @@
 import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
   function receive_message(message) {
-    console.log("receiving message");
     switch (message.data[0]) {
       case 'solve_count':
         solve_count(message.data[1]);
@@ -17,7 +16,7 @@ import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
     var t0 = performance.now();
     send_result('solve_count', sudoku.solution_count(data));
     var t1 = performance.now();
-    console.log("solution count timing: ", t1-t0)
+    console.log("solution count timing: ", t1-t0);
   }
 
   function solve_common(data) {
@@ -26,8 +25,18 @@ import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
 
   function send_result(name, return_data) {
     postMessage([name, return_data]);
+    postMessage("finish");
   }
 
   sudoku.init()
+  for (var i in message_during_init) {
+    receive_message(message_during_init[i]);
+  }
   self.onmessage = receive_message;
 });
+
+var message_during_init = new Array();
+function save_for_later(message) {
+  message_during_init.push(message);
+}
+self.onmessage = save_for_later;
