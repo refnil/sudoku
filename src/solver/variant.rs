@@ -1,8 +1,9 @@
-use crate::board::{Sudoku, Variant};
+use crate::board::{Sudoku, Variant, Diff};
 use crate::helper::Unsolvable;
 use crate::solver::{mask_iter, Guess, Notification, OutsideSolver, Solutions, Solver, SudokuSolver};
 use std::collections::HashMap;
 use std::fmt::Write;
+use std::cmp;
 
 #[derive(Clone, Copy)]
 struct Thermo {
@@ -96,6 +97,35 @@ impl Thermo {
     }
 }
 
+struct DiffShared {
+    diffs: Vec<DiffSharedNode>
+}
+
+#[derive(Debug)]
+struct DiffSharedNode {
+    band1: usize,
+    pos1: u32,
+    band2: usize,
+    pos2: u32,
+    val: u8,
+}
+
+impl DiffShared {
+    fn build(data: &Vec<Diff>) -> Self {
+        let diffs = data.iter().map(|d| {
+            DiffSharedNode {
+                band1: (d.cell1 / 27).into(),
+                pos1: 1 << (d.cell1 % 27),
+                band2: (d.cell2 / 27).into(),
+                pos2: 1 << (d.cell2 % 27),
+                val: d.val,
+            }
+        }).collect();
+        Self { diffs }
+    }
+}
+
+
 pub(crate) struct VariantSolver {
     constant: VariantSolverConstant,
     copy: VariantSolverCopy,
@@ -106,6 +136,7 @@ struct VariantSolverConstant {
     diag_neg: bool,
     king: bool,
     thermo: Option<ThermoShared>,
+    diff: DiffShared,
 }
 
 #[derive(Clone, Copy)]
@@ -197,6 +228,7 @@ impl VariantSolver {
             diag_neg: variant.diag_neg,
             king: variant.king,
             thermo: t_s,
+            diff: DiffShared::build(&variant.difference),
         };
         let copy = VariantSolverCopy {
             base: SudokuSolver::from_sudoku(variant.base)?,
@@ -248,6 +280,7 @@ impl<'a> VariantSolverCopyPlus<'a> {
             self.check_king()?
         }
         self.check_thermo();
+        self.check_difference();
         Ok(())
     }
 
@@ -256,6 +289,7 @@ impl<'a> VariantSolverCopyPlus<'a> {
             && (!self.has_diag_neg() || self.is_ok_diag_neg())
             && (!self.has_king() || self.is_ok_king())
             && self.is_ok_thermo()
+            && self.is_ok_difference()
     }
 
     fn is_ok_diag_pos(&self) -> bool {
@@ -579,5 +613,114 @@ impl<'a> VariantSolverCopyPlus<'a> {
             }
         }
         true
+    }
+
+    fn check_difference(&mut self) {
+        let poss_cells = &mut self.base.base.poss_cells;
+        let unsolved = &self.base.base.unsolved_cells;
+        self.constant.diff.diffs.iter().for_each(|diff| {
+            //println!("{:?}", diff);
+            let b1 = diff.band1;
+            let p1 = diff.pos1;
+
+            let b2 = diff.band2;
+            let p2 = diff.pos2;
+
+            // s1: cell 1 solved
+            // s2: cell 2 solved
+            let s1 = !unsolved[b1] & p1 != 0;
+            let s2 = !unsolved[b2] & p2 != 0;
+
+            if s1 && s2 {
+                return;
+            }
+
+            let val = diff.val;
+            let off = (diff.val * 3) as usize;
+
+            for n in 0..cmp::min(val,9-val) {
+                //println!("Up only {}", n);
+                let fb1 = b1 + (n*3) as usize;
+                let fb2 = b2 + (n*3) as usize;
+
+                if (!s1 && poss_cells[fb1] & p1 != 0) && (poss_cells[fb2+off] & p2 == 0) {
+                    //println!("remove {} from cell1 since {} is not in cell2", n, n+val);
+                    poss_cells[fb1] &= !p1;
+                }
+
+                if (!s2 && poss_cells[fb2] & p2 != 0) && (poss_cells[fb1+off] & p1 == 0) {
+                    //println!("remove {} from cell2 since {} is not in cell1", n, n+val);
+                    poss_cells[fb2] &= !p2;
+                }
+            }
+
+            for n in val..(9-val) {
+                //println!("Both {}", n);
+
+                let fb1 = b1 + (n*3) as usize;
+                let fb2 = b2 + (n*3) as usize;
+                if (!s1 && poss_cells[fb1] & p1 != 0) {
+                    if (poss_cells[fb2-off] & p2 == 0) && (poss_cells[fb2+off] & p2 == 0) {
+                        //println!("remove {} from cell1 and {} and {} from cell2", n, n-val, n+val);
+                        poss_cells[fb1] &= !p1;
+                    }
+                }
+
+                if (!s2 && poss_cells[fb2] & p2 != 0) {
+                    if (poss_cells[fb1-off] & p1 == 0) && (poss_cells[fb1+off] & p1 == 0) {
+                        //println!("remove {} from cell2 and {} and {} from cell1", n, n-val, n+val);
+                        poss_cells[fb2] &= !p2;
+                    }
+                }
+            }
+
+            for n in cmp::max(val,9-val)..9 {
+                //println!("Down only {}", n);
+                let fb1 = b1 + (n*3) as usize;
+                let fb2 = b2 + (n*3) as usize;
+
+                if (!s1 && poss_cells[fb1] & p1 != 0) && (poss_cells[fb2-off] & p2 == 0) {
+                    //println!("remove {} from cell1 since {} from cell2", n, n+val);
+                    poss_cells[fb1] &= !p1 ;
+                }
+
+                if (!s2 && poss_cells[fb2] & p2 != 0) && (poss_cells[fb1-off] & p1 == 0) {
+                    //println!("remove {} from cell2 since {} from cell1", n, n+val);
+                    poss_cells[fb2] &= !p2 ;
+                }
+            }
+        })
+    }
+
+    fn is_ok_difference(&self) -> bool {
+        let poss_cells = &self.base.base.poss_cells;
+        let unsolved = &self.base.base.unsolved_cells;
+        self.constant.diff.diffs.iter().all(|diff| {
+            let b1 = diff.band1;
+            let p1 = diff.pos1;
+
+            let b2 = diff.band2;
+            let p2 = diff.pos2;
+
+            if !unsolved[b1] & p1 == 0 {
+                return true ;
+            }
+            if !unsolved[b2] & p2 == 0 {
+                return true;
+            }
+
+            let val = diff.val as usize;
+
+            for n in 0..(9-val) {
+                if poss_cells[b1 + n*3] & p1 != 0 {
+                    return poss_cells[b2 + (n+val)*3] & p2 != 0
+                }
+                if poss_cells[b2 + n*3] & p2 != 0 {
+                    return poss_cells[b1 + (n+val)*3] & p1 != 0
+                }
+            }
+
+            return false;
+        })
     }
 }

@@ -19,5 +19,5 @@ pub use self::{
     candidate::Candidate,
     cell_state::CellState,
     grid_state::GridState,
-    variant::Variant,
+    variant::*,
 };

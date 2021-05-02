@@ -10,6 +10,63 @@ pub struct Variant {
     pub diag_neg: bool,
     pub king: bool,
     pub thermo: Vec<Vec<u32>>,
+    pub difference: Vec<Diff>,
+}
+
+pub struct Diff {
+    pub cell1: u8,
+    pub cell2: u8,
+    pub val: u8,
+}
+
+impl Diff {
+    fn build(data: Vec<u8>) -> Result<Self, LineParseError>{
+        if data.len() < 3 {
+            return Err(LineParseError::MissingCommentDelimiter);
+        }
+
+        let cell1 = data[0];
+        let cell2 = data[1];
+        let val = data[2];
+
+        if !is_cell_neighbour(cell1.into(), cell2.into()) {
+            println!("wrong cell: {} {}", cell1, cell2);
+            return Err(LineParseError::MissingCommentDelimiter);
+        }
+
+        if val > 8 {
+            println!("wrong val: {} {}", val, data.iter().map(|u|u.to_string()).collect::<Vec<_>>().join(" "));
+            return Err(LineParseError::MissingCommentDelimiter);
+        }
+
+        Ok(Diff { cell1, cell2, val})
+    }
+}
+
+fn is_cell_neighbour(c1: u32, c2: u32) -> bool {
+    (c1 == c2 + 1 && c1 % 9 != 0) ||
+    // going to the left
+    (c1 + 1 == c2 && c1 % 9 != 8) ||
+    // going to the right
+    (c1 == c2 + 9) ||
+    // going up
+    (c1 + 9 == c2)
+    // going down
+}
+
+fn is_cell_diag(c1: u32, c2: u32) -> bool {
+    (c1 == c2 + 10 && c1 % 9 != 0) ||
+    // going to the top left
+    (c1 + 8 == c2 && c1 % 9 != 0) ||
+    // going to the bottom left
+    (c1 == c2 + 8 && c1 % 9 != 8) ||
+    // going to the top right
+    (c1 + 10 == c2 && c1 % 9 != 8)
+    // going to the bottom right
+}
+
+fn is_cell_near(c1: u32, c2: u32) -> bool {
+    is_cell_neighbour(c1, c2) || is_cell_diag(c1, c2)
 }
 
 fn is_thermo_valid(thermo: &Vec<u32>) -> bool {
@@ -39,23 +96,7 @@ fn is_thermo_valid(thermo: &Vec<u32>) -> bool {
 
     let zipped = thermo.iter().zip(thermo.iter().skip(1));
     for (&c1, &c2) in zipped {
-        if c1 == c2 + 1 && c1 % 9 != 0 {
-            // going to the left
-        } else if c1 == c2 + 10 && c1 % 9 != 0 {
-            // going to the top left
-        } else if c1 + 8 == c2 && c1 % 9 != 0 {
-            // going to the bottom left
-        } else if c1 + 1 == c2 && c1 % 9 != 8 {
-            // going to the right
-        } else if c1 == c2 + 8 && c1 % 9 != 8 {
-            // going to the top right
-        } else if c1 + 10 == c2 && c1 % 9 != 8 {
-            // going to the bottom right
-        } else if c1 == c2 + 9 {
-            // going up
-        } else if c1 + 9 == c2 {
-            // going down
-        } else {
+        if !is_cell_near(c1, c2) {
             return false;
         }
     }
@@ -71,6 +112,7 @@ impl Variant {
             diag_neg: false,
             king: false,
             thermo: Vec::new(),
+            difference: Vec::new(),
         }
     }
 
@@ -96,6 +138,9 @@ impl Variant {
                 return Err(LineParseError::MissingCommentDelimiter);
             }
             self.thermo.push(thermo);
+        } else if s.starts_with("diff") {
+            let diff = s.split('|').skip(1).map(|s| s.parse().unwrap()).take(3).collect::<Vec<_>>();
+            self.difference.push(Diff::build(diff)?);
         }
         Ok(())
     }
@@ -248,5 +293,26 @@ mod test {
             "1......5...........2.8........274.....3...9.....193........6.4...........6......3",
             "|4|3|2|1;thermo|16|15|14|13|12|11|10;thermo|76|77|78|79;thermo|64|65|66|67|68|69|70",
         );
+    }
+
+    #[test]
+    fn test_difference() {
+        fn ok(line: &str) {
+            let v = Variant::from_str_line(line).unwrap();
+            println!("{}", line);
+            println!("{}", v.display_block());
+            assert_eq!(v.solutions_count_up_to(200), 1);
+        }
+        fn not_ok(line: &str) {
+            let v = Variant::from_str_line(line).unwrap();
+            //println!("{}", v.display_block());
+            assert_eq!(v.solutions_count_up_to(2), 0);
+        }
+        not_ok("12.....5...........2.8........274.....3...9.....193........6.4...........6......3
+                diff|0|1|2");
+        ok("549...17.....194..21...5........8.2.95.....487.1...6596...2.........6.97.2.5.48..;diff|80|71|4");
+        ok("549...17.....194..21...5........8.2.95.....487.1...6596...2.........6.97.2.5.48..;diff|80|71|1");
+        ok(".................................................................................;diag_pos;diag_neg;thermo|0|9|18|27|36;thermo|20|29|38|47|56;thermo|40|49|58|67|76;thermo|33|42|51|60|69;thermo|17|26|35|44|53;diff|18|27|1;diff|38|47|2;diff|58|67|3;diff|51|60|4;diff|35|44|5;diff|45|46|1");
+
     }
 }
