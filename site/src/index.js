@@ -1,5 +1,7 @@
 'use strict';
 import "./index.css";
+import { LocalStorageSettings as Settings } from "./settings.js";
+import { update_text_on_off } from "./ui.js";
 
 import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
   var new_sudoku = document.getElementById("new");
@@ -55,8 +57,8 @@ var setting_a = document.getElementById("setting_url");
 var sudokuwiki = document.getElementById("sudokuwiki");
 
 // Settings
-var hide_setter = false;
-var hide_setter_button = document.getElementById("hide_setter");
+var setter_settings = new Settings();
+setter_settings.add_boolean_option('hide_setter', false, document.getElementById("hide_setter"))
 
 // Puzzle information
 var puzzle_name = document.getElementById("puzzle_name");
@@ -233,11 +235,6 @@ function init_button() {
     update_solution_count();
   }
 
-  hide_setter_button.onclick = (event) => {
-    hide_setter = !hide_setter;
-    update_variant_visual();
-  };
-
   var keyboard_buttons = Array.from(key_number.children).concat(
     Array.from(key_middle.children),
   );
@@ -369,9 +366,8 @@ function update_variant_visual(){
     thermo_cl.add("toggle-on");
   }
 
-
   // Settings
-  update_text_on_off(hide_setter, hide_setter_button);
+  setter_settings.update();
 
   // Puzzle informations
   puzzle_name.innerHTML = puzzle_name_edit.value || "Sudoku";
@@ -415,17 +411,6 @@ function update_variant_visual(){
   update_mode("middle", key_middle_button, key_middle);
   update_mode("corner", key_corner_button, key_corner);
   update_mode("color", key_color_button, key_color);
-}
-
-function update_text_on_off(value, button) {
-  if (value) {
-    button.classList.add("toggle-on");
-    button.classList.remove("toggle-off");
-  }
-  else {
-    button.classList.remove("toggle-on");
-    button.classList.add("toggle-off");
-  }
 }
 
 function init_keyboard() {
@@ -474,10 +459,11 @@ function can_change(id) {
   }
 }
 
-function change_mode() {
+function change_mode(force_hide_setter=false) {
   app_mode = app_mode == 'setter' ? 'solver' : 'setter'
   app_mode_text.innerHTML = app_mode
-  if (!hide_setter || app_mode == 'setter') {
+  var should_hide = force_hide_setter || setter_settings.get('hide_setter', false);
+  if (!should_hide || app_mode == 'setter') {
     setter_side.classList.remove("hidden");
   }
   else {
@@ -895,8 +881,7 @@ var par_solve_only = params.get('solve');
 if (par_solve_only != null){
   solve_only = true;
   if (app_mode == 'setter') {
-    hide_setter = true;
-    change_mode();
+    change_mode(true);
   }
   document.getElementById("app_mode_button").remove();
 }
