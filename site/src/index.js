@@ -466,7 +466,7 @@ function handle_key_event(key) {
         set_cell(cell_id, key, current_kind, keyboard_mode);
       }
     }
-    update_solution_count()
+    update_solution_count();
   }
   else if (key == "Delete" || key == "Backspace"){
     for (let cell_id of selected) {
@@ -625,8 +625,8 @@ function load_data(data) {
     else if(field.startsWith('thermo')){
       var thermo = new Array();
       field.split('|').forEach((number) => {
-        var number = parseInt(number) || null;
-        if (number != null) {
+        var number = parseInt(number);
+        if (!isNaN(number)) {
           thermo.push(number);
         }
       });
@@ -645,7 +645,7 @@ function update_solution_count() {
   }
   update_url();
 
-  if (app_mode != 'setter') {
+  if (solve_only) {
     return;
   }
 
@@ -654,6 +654,7 @@ function update_solution_count() {
     get_current_line(),
     setter_settings.get_number("solution_count_limit", 10000)
   ]);
+  solution_count.innerHTML = "No result yet";
 }
 
 function get_url(){
