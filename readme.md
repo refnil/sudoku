@@ -39,6 +39,18 @@ if let Some(solution) = sudoku.solution() {
 }
 ```
 
+## Favicon 
+
+The favicon was generated using the following font:
+
+- Font Title: Lakki Reddy
+- Font Author: Copyright (c) 2011 Silicon Andhra (fonts.siliconandhra.org). Copy
+right (c) 2010 by Font Diner, Inc DBA Sideshow.
+- Font Source: http://fonts.gstatic.com/s/lakkireddy/v9/S6u5w49MUSzD9jlCPmvLZQfo
+x9k97-xZ.ttf
+- Font License: SIL Open Font License, 1.1 (http://scripts.sil.org/OFL)
+
+
 ## Source
 
 - https://codepen.io/sdobson/pen/aEWBQw
