@@ -2,8 +2,12 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
     <title>Sudoku</title>
-    <script src="./index.js"></script>
+    <script async src="./index.js"></script>
   </head>
   <body>
     <center>
@@ -28,6 +32,7 @@
         <button id='clear_computer'>Clear computer hint</button>
         </p>
         <p>Solution count: <span id='count'></span></p>
+        <p id="solve_result_message" class="hidden">Solve result message: <span id='solve_result_message_text'></span></p>
         <h3>Constraints</h3>
         <p>
         <button id='diag_pos_button'>Diagonal +</button>
@@ -44,7 +49,12 @@
         <h3>Other</h3>
         <details>
           <summary>Setter settings</summary>
-          <button id="hide_setter">Hide setter side solving mode</button>
+          <button id="hide_setter">Hide setter side in solving mode</button>
+          <label>Solution count limit:</label><input id="solution_count_limit" type="number" step="100"/>
+          <label>Solve limit:</label><input id="solve_limit" type="number" step="100"/>
+          <label>Solve max middle number: </label><input id="solve_max_middle_number" type="number"/>
+          <h4>Debug options</h4>
+          <button id="count_after_solve">Update solution count after solve</button>
         </details>
         <details>
           <summary>Manual edit</summary>
