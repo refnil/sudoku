@@ -212,7 +212,7 @@ function init_button() {
   var reset_button = document.getElementById("reset");
   reset_button.onclick = reset;
   var app_mode_button = document.getElementById("app_mode_button");
-  app_mode_button.onclick = change_mode;
+  app_mode_button.onclick = (e) => change_mode();
 
   diag_pos_button.onclick = (event) => {
     diag_pos = !diag_pos;
@@ -471,7 +471,7 @@ function can_change(id) {
 function change_mode(force_hide_setter=false) {
   app_mode = app_mode == 'setter' ? 'solver' : 'setter'
   app_mode_text.innerHTML = app_mode
-  var should_hide = force_hide_setter || setter_settings.get('hide_setter', false);
+  var should_hide = force_hide_setter || setter_settings.get_bool('hide_setter', false);
   if (!should_hide || app_mode == 'setter') {
     setter_side.classList.remove("hidden");
   }
