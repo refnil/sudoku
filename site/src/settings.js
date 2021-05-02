@@ -7,6 +7,7 @@ export class LocalStorageSettings {
     this.prefix = prefix;
     this.storage = window.localStorage;
     this.boolean_options = new Map();
+    this.number_options = new Map();
   }
 
   get(key, def=null) {
@@ -21,6 +22,14 @@ export class LocalStorageSettings {
     return val == "true";
   }
 
+  get_number(key, def=null) {
+    var val = this.get(key);
+    if (val == null) {
+      return def;
+    }
+    return parseInt(val);
+  }
+
   set(key, value) {
     this.storage.setItem(key, value);
   }
@@ -33,8 +42,7 @@ export class LocalStorageSettings {
 
   add_boolean_option(key, def, button) {
     this.set_default(key, def);
-    var val = this.get_bool(key, def);
-    button.value = val;
+    var val = this.get_bool(key);
     button.onclick= () => {
       var new_val = !this.get_bool(key);
       this.set(key, new_val);
@@ -44,9 +52,25 @@ export class LocalStorageSettings {
     this.boolean_options.set(key, button);
   }
 
+  add_number_option(key, def, input) {
+    this.set_default(key, def);
+    var val = this.get_number(key);
+    input.value = val;
+    input.onchange = () => {
+      var new_val = input.value;
+      this.set(key, new_val);
+    }
+    input.value = val;
+    this.number_options.set(key, input);
+  }
+
   update() {
-    for (const [key, button] in self.boolean_options) {
+    for (const [key, button] in this.boolean_options) {
       update_text_on_off(this.get_bool(key), button);
+    }
+
+    for (const [key, input] in this.number_options) {
+      //input.value = this.get_number(key);
     }
   }
 }

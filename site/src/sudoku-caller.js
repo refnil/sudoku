@@ -42,25 +42,25 @@ import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
   function receive_message(message) {
     switch (message.data[0]) {
       case 'solve_count':
-        solve_count(message.data[1]);
+        solve_count(message.data[1], message.data[2]);
         break;
       case 'solve_common':
-        solve_common(message.data[1]);
+        solve_common(message.data[1], message.data[2]);
         break;
       default:
         console.error("Could not handle message: ", message);
     }
   }
 
-  function solve_count(data) {
+  function solve_count(data, limit) {
     var t0 = performance.now();
-    var r = sudoku.solution_count_notify(data);
+    var r = sudoku.solution_count_notify(data, limit);
     var t1 = performance.now();
     console.log("solution count timing: ", t1-t0, r);
   }
 
-  function solve_common(data) {
-    send_result('solve_common', sudoku.solve_common_extra(data));
+  function solve_common(data, limit) {
+    send_result('solve_common', sudoku.solve_common_extra(data, limit));
   }
 
   function send_result(name, return_data) {

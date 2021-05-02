@@ -8,6 +8,7 @@ import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
   new_sudoku.onclick = generate_new;
   function generate_new() {
     set_line(sudoku.generate(), "clue")
+    set_solve_message();
   }
 });
 
@@ -59,6 +60,10 @@ var sudokuwiki = document.getElementById("sudokuwiki");
 // Settings
 var setter_settings = new Settings();
 setter_settings.add_boolean_option('hide_setter', false, document.getElementById("hide_setter"))
+setter_settings.add_boolean_option('count_after_solve', false, document.getElementById("count_after_solve"))
+setter_settings.add_number_option('solution_count_limit', 10000, document.getElementById("solution_count_limit"))
+setter_settings.add_number_option('solve_limit', 1000, document.getElementById("solve_limit"))
+setter_settings.add_number_option('solve_max_middle_number', 4, document.getElementById("solve_max_middle_number"))
 
 // Puzzle information
 var puzzle_name = document.getElementById("puzzle_name");
@@ -73,6 +78,11 @@ var thermo_surround_button = document.getElementById("thermo");
 var thermo_edit = thermo_surround_button.children[0];
 var thermo_delete = thermo_surround_button.children[1];
 var thermo_data = new Array();
+
+// Solve button
+var solve = document.getElementById("solve");
+var solve_result_message = document.getElementById("solve_result_message");
+var solve_result_message_text = document.getElementById("solve_result_message_text");
 
 function render_selected(){
   for(var i = 0; i < cells.length; i++){
@@ -194,7 +204,6 @@ function init_ui() {
 }
 
 function init_button() {
-  var solve = document.getElementById("solve");
   solve.onclick = solve_current;
   var cc_button = document.getElementById("clear_computer");
   cc_button.onclick = clear_computer;
@@ -494,6 +503,7 @@ function reset() {
   diag_pos = false;
   diag_neg = false;
   thermo_data = new Array();
+  set_solve_message();
   update_solution_count();
   update_variant_visual();
   render_thermo();
@@ -614,7 +624,11 @@ function update_solution_count() {
     return;
   }
 
-  sudoku_worker.postMessage(['solve_count', get_current_line()]);
+  sudoku_worker.postMessage([
+    'solve_count',
+    get_current_line(),
+    setter_settings.get_number("solution_count_limit", 10000)
+  ]);
 }
 
 function get_url(){
@@ -643,7 +657,22 @@ function update_url(){
 
 
 function solve_current(){
-  sudoku_worker.postMessage(['solve_common', get_current_line()]);
+  sudoku_worker.postMessage([
+    'solve_common',
+    get_current_line(),
+    setter_settings.get_number("solve_limit", 1000)
+  ]);
+  set_solve_message("Solving...");
+}
+
+function set_solve_message(message) {
+  if (message != null) {
+    solve_result_message.classList.remove("hidden");
+    solve_result_message_text.innerHTML = message;
+  }
+  else {
+    solve_result_message.classList.add("hidden");
+  }
 }
 
 
@@ -846,24 +875,39 @@ function handle_sudoku_message(message) {
   else if(message[0] == "solve_common") {
     console.log(message[1]);
     var cs = message[1].split(';');
-    for (var i = 0; i < 81; i++){
-      var c = cs[i];
-      if (c.length == 0) {
-        console.error("Impossible situation on cell: ", i, cs);
-      }
-      else if (c.length == 1) {
-        set_cell(i, c, "computer", "normal");
-      }
-      else if (c.length < 5) {
-        set_cell(i, '', "computer", "normal");
-        for (var l = 0; l < c.length; l++) {
-          set_cell(i, c[l], "computer", "middle");
+    var solve_result = null;
+    if (cs.length == 1) {
+      solve_result = cs[0];
+    }
+    else {
+      var max_middle = setter_settings.get_number("solve_max_middle_number", 4);
+      var all_cell_too_much_poss = true;
+      for (var i = 0; i < 81; i++){
+        var c = cs[i];
+        if (c.length == 0) {
+          console.error("Impossible situation on cell: ", i, cs);
+        }
+        else if (c.length == 1) {
+          all_cell_too_much_poss = false;
+          set_cell(i, c, "computer", "normal");
+        }
+        else if (c.length <= max_middle) {
+          all_cell_too_much_poss = false;
+          set_cell(i, '', "computer", "normal");
+          for (var l = 0; l < c.length; l++) {
+            set_cell(i, c[l], "computer", "middle");
+          }
         }
       }
+      if (all_cell_too_much_poss) {
+        solve_result = "Too many possibilities on every cell";
+      }
     }
+    set_solve_message(solve_result);
     
-    // OPTIONAL: useful to debug solve_common
-    update_solution_count();
+    if (setter_settings.get_bool('count_after_solve',false)) {
+      update_solution_count();
+    }
   }
   else {
     console.error("Message not handled: ", message);

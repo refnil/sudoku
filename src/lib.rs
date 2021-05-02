@@ -114,12 +114,11 @@ pub fn solve_common(sudoku: &str) -> String {
 }
 
 #[wasm_bindgen]
-pub fn solve_common_extra(sudoku: &str) -> String {
+pub fn solve_common_extra(sudoku: &str, limit: usize) -> String {
     let s = Variant::from_str_line(sudoku).unwrap();
-    let vec = s.solutions_up_to(1000);
-    if vec.len() == 1000 {
-        println!("Too many solution");
-        String::new()
+    let vec = s.solutions_up_to(limit);
+    if vec.len() == limit {
+        "Too many solution".to_string()
     } else if vec.len() > 0 {
         let mut sets = Vec::new();
         for i in 0..81 {
@@ -132,8 +131,7 @@ pub fn solve_common_extra(sudoku: &str) -> String {
         }
         sets.iter().map(|s| s.iter().map(|n| n.to_string()).collect::<Vec<_>>().concat() + ";").collect::<Vec<_>>().concat()
     } else {
-        println!("No solution");
-        String::new()
+        "No solution".to_string()
     }
 }
 
@@ -145,7 +143,7 @@ pub fn generate() -> String {
 }
 
 #[wasm_bindgen]
-pub fn solution_count_notify(sudoku: &str) -> usize {
+pub fn solution_count_notify(sudoku: &str, limit: usize) -> usize {
     fn forward(n: Notification) {
         let (notification, count) = match n {
             Notification::Ongoing(c) => (0,c),
@@ -155,11 +153,11 @@ pub fn solution_count_notify(sudoku: &str) -> usize {
         notify(notification, count);
     }
     if let Ok(s) = Variant::from_str_line(sudoku) {
-        s.solutions_notifier_up_to(10000, &(forward as fn(Notification)))
+        s.solutions_notifier_up_to(limit, &(forward as fn(Notification)))
     }
     else {
-        notify(3, 10000000);
-        10000000
+        notify(3, limit+1);
+        limit+1
     }
 }
 

@@ -18,7 +18,7 @@ function get_worker(key) {
 
 self.onmessage = (m) => {
   var key = m.data[0];
-  var arg = m.data[1];
+  var arg = m.data[1]+m.data[2];
   if (requests.get(key) == arg) {
     var resp = responses.get(key);
     if (resp != undefined) {
