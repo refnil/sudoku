@@ -1,5 +1,5 @@
 'use strict';
-import "./index.css"
+import "./index.css";
 
 import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
   var solve_only = false;
@@ -47,9 +47,11 @@ import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
   var setting_a = document.getElementById("setting_url");
   var sudokuwiki = document.getElementById("sudokuwiki");
 
+  // Settings
   var hide_setter = false;
   var hide_setter_button = document.getElementById("hide_setter");
 
+  // Puzzle information
   var puzzle_name = document.getElementById("puzzle_name");
   var puzzle_name_edit = document.getElementById("puzzle_name_edit");
   var puzzle_author = document.getElementById("puzzle_author");
@@ -855,13 +857,6 @@ import("../node_modules/sudoku/sudoku.js").then((sudoku) => {
     }
     else if(message[0] == "solve_common") {
       console.log(message[1]);
-      /*
-      var res = message[1];
-      if (res.length != 81){
-        return
-      }
-      set_line(res, "computer");
-      */
       var cs = message[1].split(';');
       for (var i = 0; i < 81; i++){
         var c = cs[i];
