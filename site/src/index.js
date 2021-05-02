@@ -25,8 +25,10 @@ var app_mode_text = document.getElementById('app_mode');
 /* Mouse mode */
 var mouse_mode = 'selection';
 var mouse_add_map = new Map();
+var mouse_finish_click_map = new Map();
 var mouse_clear_map = new Map();
 var mouse_render_map = new Map();
+var mouse_mode_leave_map = new Map();
 
 /* Solver keyboard_mode */
 var keyboard_mode = "normal";
@@ -143,10 +145,12 @@ function init_cells(){
   mouse_add_map.set('selection', i => selected.add(i));
   mouse_clear_map.set('selection', (index, shift) => {if (!shift) {selected.clear()}});
   mouse_render_map.set('selection', () => render_selected());
+  mouse_mode_leave_map.set('selection', () => selected.clear());
 
   mouse_add_map.set('thermo', add_thermo);
   mouse_render_map.set('thermo', render_thermo);
   mouse_clear_map.set('thermo', start_new_thermo);
+  mouse_finish_click_map.set('thermo', remove_one_cell_thermo);
 
   mouse_clear_map.set('thermo_delete', remove_thermo);
   mouse_render_map.set('thermo_delete', render_thermo);
@@ -183,8 +187,29 @@ function init_cells(){
 
     background_cells.push(new Array());
   }
-  document.addEventListener('mousedown', () => is_mouse_down = true)
-  document.addEventListener('mouseup', () => is_mouse_down = false)
+  document.addEventListener('mousedown', () => is_mouse_down = true);
+  document.addEventListener('mouseup', () => {
+    is_mouse_down = false
+    var f = mouse_finish_click_map.get(mouse_mode);
+    if (f) {
+      f();
+      mouse_render();
+    }
+  });
+}
+
+function toggle_mouse_mode(target, if_already) {
+  var f = mouse_mode_leave_map.get(mouse_mode);
+  if (f) {
+    f();
+    mouse_render();
+  }
+  if(mouse_mode == target) {
+    mouse_mode = if_already;
+  }
+  else {
+    mouse_mode = target;
+  }
 }
 
 function init_ui() {
@@ -233,13 +258,13 @@ function init_button() {
   };
 
   thermo_edit.onclick = (event) => {
-    mouse_mode = mouse_mode == "thermo" ? "selection": "thermo";
+    toggle_mouse_mode("thermo", "selection");
     update_variant_visual();
     update_solution_count();
   };
 
   thermo_delete.onclick = (event) => {
-    mouse_mode = mouse_mode == "thermo_delete" ? "selection": "thermo_delete";
+    toggle_mouse_mode("thermo_delete", "selection");
     update_variant_visual();
     update_solution_count();
   }
@@ -837,10 +862,19 @@ function start_new_thermo(index) {
   thermo_data.push(new_thermo);
 }
 
-function add_thermo(index) {
+function add_thermo(cell) {
   var current_thermo = thermo_data[thermo_data.length-1];
-  if (current_thermo.length < 9 && current_thermo[current_thermo.length-1] != index){
-    current_thermo.push(index);
+  var is_index_in_thermo = current_thermo.indexOf(cell) != -1;
+  if (current_thermo.length < 9 && !is_index_in_thermo) {
+    var last_cell = current_thermo[current_thermo.length-1];
+    var lc_x = last_cell % 9;
+    var lc_y = Math.trunc(last_cell / 9);
+    var c_x = cell % 9;
+    var c_y = Math.trunc(cell / 9);
+
+    if(Math.abs(c_x - lc_x) <= 1 && Math.abs(c_y - lc_y) <= 1) {
+      current_thermo.push(cell);
+    }
   }
 }
 
@@ -863,6 +897,15 @@ function remove_thermo(index) {
     if (found_index>= 0) {
       thermo_data.splice(id, 1);
       break;
+    }
+  }
+}
+
+function remove_one_cell_thermo() {
+  for(var i = 0; i < thermo_data.length; i++) {
+    if (thermo_data[i].length == 1) {
+      thermo_data.splice(i, 1);
+      i--;
     }
   }
 }
