@@ -155,6 +155,51 @@ span {
   transform: translate(-50%, 0);
 }
 
+.line-button {
+  position: absolute;
+  /*border: 1px solid red;*/
+}
+
+.right-line-button {
+  height: 50%;
+  width: 25%;
+  border-radius: 50% 0 0 50%;
+
+  top: 50%;
+  right: 0;
+  transform: translate(2px, -50%);
+}
+
+.left-line-button {
+  height: 50%;
+  width: 25%;
+  border-radius: 0 50% 50% 0;
+
+  top: 50%;
+  left: 0;
+  transform: translate(-2px, -50%);
+}
+
+.bottom-line-button {
+  height: 25%;
+  width: 50%;
+  border-radius: 50% 50% 0 0;
+
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 2px);
+}
+
+.top-line-button {
+  height: 25%;
+  width: 50%;
+  border-radius: 0 0 50% 50%;
+
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -2px);
+}
+
 .sudoku-container {
   display: flex;
   justify-content: center;

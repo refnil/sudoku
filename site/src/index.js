@@ -22,13 +22,18 @@ var solution_count = document.getElementById('count');
 var app_mode = 'setter';
 var app_mode_text = document.getElementById('app_mode');
 
-/* Mouse mode */
+/* Cell mouse mode */
 var mouse_mode = 'selection';
 var mouse_add_map = new Map();
 var mouse_finish_click_map = new Map();
 var mouse_clear_map = new Map();
 var mouse_render_map = new Map();
 var mouse_mode_leave_map = new Map();
+
+/* Side line mouse mode */
+var side_mouse_mode = null;
+var side_mouse_click = new Map();
+var side_mouse_render = new Map();
 
 /* Solver keyboard_mode */
 var keyboard_mode = "normal";
@@ -76,10 +81,15 @@ var puzzle_message = document.getElementById("puzzle_message");
 var puzzle_message_edit = document.getElementById("puzzle_message_edit");
 var puzzle_variant_rule = document.getElementById("puzzle_variant_rule");
 
+// Thermo related vars
 var thermo_surround_button = document.getElementById("thermo");
 var thermo_edit = thermo_surround_button.children[0];
 var thermo_delete = thermo_surround_button.children[1];
 var thermo_data = new Array();
+
+// Difference related vars
+var difference_button = document.getElementById("difference");
+var difference_data = new Array();
 
 // Solve button
 var solve = document.getElementById("solve");
@@ -155,6 +165,9 @@ function init_cells(){
   mouse_clear_map.set('thermo_delete', remove_thermo);
   mouse_render_map.set('thermo_delete', render_thermo);
 
+  side_mouse_click.set('difference', difference_click);
+  side_mouse_render.set('difference', difference_render);
+
   var sudoku = document.getElementById("sudoku");
   var sudoku_ul = document.createElement("ul");
   sudoku.appendChild(sudoku_ul);
@@ -186,6 +199,51 @@ function init_cells(){
     }
 
     background_cells.push(new Array());
+
+    // Add the invisible button on the side of the cell
+    // On the right
+    if (i % 9 != 8) {
+      var right_cell = document.createElement("span"); 
+      right_cell.classList.add("line-button", "right-line-button");
+      right_cell.addEventListener('mousedown', cell_side_click);
+      right_cell.setAttribute("cell1", i);
+      right_cell.setAttribute("cell2", i+1);
+      right_cell.setAttribute("right", 1);
+      cell_li.appendChild(right_cell);
+    }
+
+    // On the left
+    if (i % 9 != 0) {
+      var side_cell = document.createElement("span"); 
+      side_cell.classList.add("line-button", "left-line-button");
+      side_cell.addEventListener('mousedown', cell_side_click);
+      side_cell.setAttribute("cell1", i-1);
+      side_cell.setAttribute("cell2", i);
+      right_cell.setAttribute("right", 1);
+      cell_li.appendChild(side_cell);
+    }
+
+    // On the bottom
+    if (i < 72) {
+      var bottom_cell = document.createElement("span"); 
+      bottom_cell.classList.add("line-button", "bottom-line-button");
+      bottom_cell.addEventListener('mousedown', cell_side_click);
+      bottom_cell.setAttribute("cell1", i);
+      bottom_cell.setAttribute("cell2", i+9);
+      right_cell.setAttribute("right", 0);
+      cell_li.appendChild(bottom_cell);
+    }
+
+    // On the top
+    if (i >= 9) {
+      var side_cell = document.createElement("span"); 
+      side_cell.classList.add("line-button", "top-line-button");
+      side_cell.addEventListener('mousedown', cell_side_click);
+      side_cell.setAttribute("cell1", i-9);
+      side_cell.setAttribute("cell2", i);
+      right_cell.setAttribute("right", 0);
+      cell_li.appendChild(side_cell);
+    }
   }
   document.addEventListener('mousedown', () => is_mouse_down = true);
   document.addEventListener('mouseup', () => {
@@ -196,6 +254,18 @@ function init_cells(){
       mouse_render();
     }
   });
+}
+
+function cell_side_click(e) {
+  console.log(e.target.getAttribute("cell1"), e.target.getAttribute("cell2"));
+  var f = side_mouse_click.get(side_mouse_mode);
+  if (f) {
+    f(e.target);
+    f = side_mouse_render.get(side_mouse_mode);
+    if (f) {
+      f();
+    }
+  }
 }
 
 function toggle_mouse_mode(target, if_already) {
@@ -209,6 +279,31 @@ function toggle_mouse_mode(target, if_already) {
   }
   else {
     mouse_mode = target;
+  }
+}
+
+function toggle_side_mouse_mode(target, if_already) {
+  /*
+  var f = mouse_mode_leave_map.get(mouse_mode);
+  if (f) {
+    f();
+    mouse_render();
+  }
+  */
+  if(side_mouse_mode == target) {
+    side_mouse_mode = if_already;
+  }
+  else {
+    side_mouse_mode = target;
+  }
+}
+
+function toggle_keyboard_mode(target, if_already) {
+  if(keyboard_mode == target) {
+    keyboard_mode = if_already;
+  }
+  else {
+    keyboard_mode = target;
   }
 }
 
@@ -267,6 +362,13 @@ function init_button() {
     toggle_mouse_mode("thermo_delete", "selection");
     update_variant_visual();
     update_solution_count();
+  }
+
+  difference_button.onclick = (event) => {
+    toggle_mouse_mode(null, "selection");
+    toggle_side_mouse_mode("difference", null);
+    toggle_keyboard_mode("difference", "normal");
+    update_variant_visual();
   }
 
   var keyboard_buttons = Array.from(key_number.children).concat(
@@ -400,6 +502,22 @@ function update_variant_visual(){
     thermo_cl.add("toggle-on");
   }
 
+  // Difference button
+  var difference_cl = difference_button.classList;
+  if (side_mouse_mode == "difference")
+  {
+    difference_cl.remove("toggle-on", "toggle-off");
+    difference_cl.add("toggle-edit");
+  }
+  else if (difference_data.length == 0) {
+    difference_cl.remove("toggle-edit", "toggle-on");
+    difference_cl.add("toggle-off");
+  }
+  else {
+    difference_cl.remove("toggle-edit", "toggle-off");
+    difference_cl.add("toggle-on");
+  }
+
   // Settings
   setter_settings.update();
 
@@ -428,23 +546,25 @@ function update_variant_visual(){
   puzzle_variant_rule.innerHTML = content;
 
   // Keyboard
-  function update_mode(name, button, keyboard){
-    if (keyboard_mode == name)
+  function update_mode(name, button, keyboard, force=false){
+    if (keyboard_mode == name || force)
     {
       button.classList.add("toggle-on");
       button.classList.remove("toggle-off");
       keyboard.classList.remove("hidden");
+      return true;
     }
     else {
       button.classList.remove("toggle-on");
       button.classList.add("toggle-off");
       keyboard.classList.add("hidden");
+      return false;
     }
   }
-  update_mode("normal", key_number_button, key_number);
-  update_mode("middle", key_middle_button, key_middle);
-  update_mode("corner", key_corner_button, key_corner);
-  update_mode("color", key_color_button, key_color);
+  var found = update_mode("middle", key_middle_button, key_middle);
+  found |= update_mode("corner", key_corner_button, key_corner);
+  found |= update_mode("color", key_color_button, key_color);
+  update_mode("normal", key_number_button, key_number, !found);
 }
 
 function init_keyboard() {
@@ -461,6 +581,13 @@ function handle_key_event(key) {
   key = parseInt(key) || key;
   var current_kind = app_mode == 'setter' ? 'clue' : 'human';
   if (Number.isInteger(key) && key >= 1 && key <= 9){
+    if (keyboard_mode == "difference") {
+      if (difference_data.length > 0) {
+        difference_data[difference_data.length - 1][3] = key;
+        difference_render();
+      }
+      return;
+    }
     for (let cell_id of selected) {
       if (can_change(cell_id)) {
         set_cell(cell_id, key, current_kind, keyboard_mode);
@@ -469,6 +596,13 @@ function handle_key_event(key) {
     update_solution_count();
   }
   else if (key == "Delete" || key == "Backspace"){
+    if (keyboard_mode == "difference") {
+      if (difference_data.length > 0) {
+        difference_render();
+        difference_data[difference_data.length - 1][3] = null;
+      }
+      return;
+    }
     for (let cell_id of selected) {
       if (can_change(cell_id)) {
         set_cell(cell_id, '', current_kind);
@@ -508,7 +642,7 @@ function change_mode(force_hide_setter=false) {
 
 function clear_computer(){
   for(var i = 0; i < cells.length; i++){
-    set_cell(i, '', "computer");
+    set_cell(i, '', "computer", "normal");
   }
   update_solution_count()
 }
@@ -521,6 +655,9 @@ function clear() {
 }
 
 function reset() {
+  keyboard_mode = "normal";
+  mouse_mode = "selection";
+  side_mouse_mode = null;
   for(var i = 0; i < cells.length; i++){
     set_cell(i, '', "clue");
   }
@@ -528,10 +665,12 @@ function reset() {
   diag_pos = false;
   diag_neg = false;
   thermo_data = new Array();
+  difference_data = new Array();
   set_solve_message();
   update_solution_count();
   update_variant_visual();
   render_thermo();
+  difference_render();
 }
 
 function get_line_with(selector){
@@ -567,6 +706,10 @@ function get_variant() {
       var number = thermo[n_id];
       line += "|" + number;
     }
+  }
+  for(var id in difference_data) {
+    var d = difference_data[id];
+    line += `;diff|${d[0]}|${d[1]}|${d[3]}`;
   }
   return line;
 }
@@ -606,6 +749,7 @@ function load_data(data) {
   diag_neg = false;
   king = false;
   thermo_data = new Array();
+  difference_data = new Array();
   data.split(';').forEach((field) => {
     if (field.startsWith('clue')){
       set_line(field.slice(4), "clue");
@@ -632,10 +776,21 @@ function load_data(data) {
       });
       thermo_data.push(thermo);
     }
+    else if(field.startsWith('diff')){
+      var diff = new Array();
+      field.split('|').forEach((number) => {
+        var number = parseInt(number);
+        if (!isNaN(number)) {
+          diff.push(number);
+        }
+      });
+      difference_data.push([diff[0], diff[1], null, diff[2]]);
+    }
   });
   update_variant_visual();
   update_solution_count();
   render_thermo();
+  difference_render();
 }
 
 function update_solution_count() {
@@ -829,8 +984,7 @@ function set_cell(id, value = '', kind = "human", mode = null) {
 
 function draw_thermo(numbers) {
   var n = numbers[0];
-  var line= (n % 9) * 100 + 50;
-  var col= Math.floor(n / 9) * 100 + 50;
+  var [line, col] = svg_pos_from_id(n);
   var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
   circle.setAttributeNS(null, "r", 35);
   circle.setAttributeNS(null, "cx", line);
@@ -908,6 +1062,65 @@ function remove_one_cell_thermo() {
       thermo_data.splice(i, 1);
       i--;
     }
+  }
+}
+
+function difference_click(element) {
+  var cell1 = element.getAttribute("cell1");
+  var cell2 = element.getAttribute("cell2");
+  var dir = element.getAttribute("right");
+
+  for (const i in difference_data) {
+    if (difference_data[i][0] == cell1 && difference_data[i][1] == cell2){
+      difference_data.splice(i,1);
+      return;
+    }
+  }
+  difference_data.push([cell1, cell2, dir, null]);
+  console.log(difference_data);
+}
+
+function difference_render() {
+  difference_svg.innerHTML = '';
+  for (const id in difference_data) {
+    draw_difference(difference_data[id]);
+  }
+  update_variant_visual();
+  update_solution_count();
+}
+
+function svg_pos_from_id(id) {
+  var line= (id % 9) * 100 + 50;
+  var col= Math.floor(id / 9) * 100 + 50;
+  return [line, col];
+}
+
+function draw_difference(difference) {
+  var c1 = difference[0]; 
+  var c2 = difference[1];
+  var [l1, o1] = svg_pos_from_id(c1);
+  var [l2, o2] = svg_pos_from_id(c2);
+
+
+  var l = (l1 + l2) / 2;
+  var o = (o1 + o2) / 2;
+
+  var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  circle.setAttributeNS(null, "r", 35);
+  circle.setAttributeNS(null, "cx", l);
+  circle.setAttributeNS(null, "cy", o);
+  circle.setAttributeNS(null, "stroke", "FireBrick");
+  circle.setAttributeNS(null, "stroke-width", "4");
+  circle.setAttributeNS(null, "fill", "rgb(255,255,255)");
+  difference_svg.appendChild(circle);
+
+  var number = difference[3];
+  if (number != null) {
+    var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttributeNS(null, "x", l);
+    text.setAttributeNS(null, "y", o);
+    text.innerHTML = number;
+    difference_svg.appendChild(text);
   }
 }
 
