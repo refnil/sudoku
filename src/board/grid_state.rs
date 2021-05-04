@@ -1,6 +1,7 @@
 use super::CellState;
 use std::fmt::Formatter;
 
+/// Simple representation of a grid
 pub struct GridState([CellState; 81]);
 
 /* Example output

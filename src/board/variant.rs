@@ -1,21 +1,33 @@
+//! A sudoku board supporting many variants
 use crate::board::sudoku::SudokuBlock;
-use crate::parse_errors::{InvalidEntry, LineParseError};
+use crate::parse_errors::LineParseError;
 use crate::solver::variant::*;
 use crate::solver::*;
 use crate::*;
 
+/// A sudoku with all the supported variant
 pub struct Variant {
+    /// The 9x9 grid of the Variant 
     pub base: Sudoku,
+    /// The diag_pos variant ( / )
     pub diag_pos: bool,
+    /// The diag_neg variant ( \ )
     pub diag_neg: bool,
+    /// The king variant
     pub king: bool,
+    /// A list of thermo for the thermo variant
     pub thermo: Vec<Vec<u32>>,
+    /// A list of difference for the difference variant
     pub difference: Vec<Diff>,
 }
 
+/// All the information needed for a Difference clue
 pub struct Diff {
+    /// one the cell from the difference
     pub cell1: u8,
+    /// the other cell from the difference
     pub cell2: u8,
+    /// difference wanted between the two cell
     pub val: u8,
 }
 
@@ -105,6 +117,9 @@ fn is_thermo_valid(thermo: &Vec<u32>) -> bool {
 }
 
 impl Variant {
+
+    /// Build a Variant from a basic sudoku.
+    /// No variants will be activated.
     pub fn from_sudoku(sudoku: Sudoku) -> Self {
         Self {
             base: sudoku,
@@ -116,6 +131,7 @@ impl Variant {
         }
     }
 
+    /// Parse a variant sudoku from a line string
     pub fn from_str_line(s: &str) -> Result<Self, LineParseError> {
         let sudoku = Sudoku::from_str_line(&s[0..81])?;
         let mut variant = Self::from_sudoku(sudoku);
@@ -154,6 +170,7 @@ impl Variant {
         }
     }
 
+    /// Return a beautiful CLI grid
     pub fn display_block(&self) -> SudokuBlock {
         self.base.display_block()
     }

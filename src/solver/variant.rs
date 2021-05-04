@@ -1,8 +1,7 @@
 use crate::board::{Sudoku, Variant, Diff};
 use crate::helper::Unsolvable;
-use crate::solver::{mask_iter, Guess, Notification, OutsideSolver, Solutions, Solver, SudokuSolver};
+use crate::solver::{mask_iter, Guess, Notification, OutsideSolver, Solver, SudokuSolver};
 use std::collections::HashMap;
-use std::fmt::Write;
 use std::cmp;
 
 #[derive(Clone, Copy)]
@@ -573,39 +572,18 @@ impl<'a> VariantSolverCopyPlus<'a> {
                 let band = band as usize;
                 for (key, val) in t.thermo_info[band].iter() {
                     let mut hit_cell = false;
-                    let mut hit_cell_number = 55;
 
                     for n in 0..9 {
                         let n_band_offset = (n * 3) as usize;
                         let cur_hit_cell = (pos_cells[band + n_band_offset] & !unsolved[band] & key) != 0;
                         hit_cell |= cur_hit_cell;
-                        if cur_hit_cell {
-                            hit_cell_number = n + 1;
-                        }
                         let mut cur_hit_small = false;
-                        let mut s = String::new();
                         for b in 0..3 {
                             let bi = b as usize;
                             let pci = bi + n_band_offset;
-                            writeln!(
-                                &mut s,
-                                "{:#032b}",
-                                (pos_cells[pci] & !unsolved[b] & val.smaller[bi])
-                            );
                             cur_hit_small |= (pos_cells[pci] & !unsolved[b] & val.smaller[bi]) != 0;
                         }
                         if hit_cell && cur_hit_small {
-                            /*
-                            print!("{}", s);
-                            println!(
-                                "n {} key {} cur_hit {} hit_number {}",
-                                n + 1,
-                                key,
-                                cur_hit_cell,
-                                hit_cell_number
-                            );
-                            println!("{}", self.base.base.extract_solution().display_block());
-                            */
                             return false;
                         }
                     }
@@ -659,14 +637,14 @@ impl<'a> VariantSolverCopyPlus<'a> {
 
                 let fb1 = b1 + (n*3) as usize;
                 let fb2 = b2 + (n*3) as usize;
-                if (!s1 && poss_cells[fb1] & p1 != 0) {
+                if !s1 && poss_cells[fb1] & p1 != 0 {
                     if (poss_cells[fb2-off] & p2 == 0) && (poss_cells[fb2+off] & p2 == 0) {
                         //println!("remove {} from cell1 and {} and {} from cell2", n, n-val, n+val);
                         poss_cells[fb1] &= !p1;
                     }
                 }
 
-                if (!s2 && poss_cells[fb2] & p2 != 0) {
+                if !s2 && poss_cells[fb2] & p2 != 0 {
                     if (poss_cells[fb1-off] & p1 == 0) && (poss_cells[fb1+off] & p1 == 0) {
                         //println!("remove {} from cell2 and {} and {} from cell1", n, n-val, n+val);
                         poss_cells[fb2] &= !p2;

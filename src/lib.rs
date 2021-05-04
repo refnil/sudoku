@@ -53,7 +53,6 @@ pub mod strategy;
 
 use console_error_panic_hook;
 use wasm_bindgen::prelude::*;
-use web_sys::console;
 
 use crate::board::variant::Variant;
 pub use crate::board::Sudoku;
@@ -62,13 +61,9 @@ use crate::solver::{Notification, OutsideSolver};
 use std::collections::HashSet;
 
 #[wasm_bindgen]
+/// Setup hook for better panic error in javascript
 pub fn init() {
     console_error_panic_hook::set_once();
-}
-
-#[wasm_bindgen]
-pub fn greet(name: &str) {
-    console::log_1(&name.into());
 }
 
 #[wasm_bindgen]
@@ -78,6 +73,7 @@ extern "C" {
 }
 
 #[wasm_bindgen]
+/// solve the sudoku
 pub fn solve(sudoku: &str) -> String {
     let s = Variant::from_str_line(sudoku).unwrap();
     if let Some(solved) = s.solution() {
@@ -89,6 +85,7 @@ pub fn solve(sudoku: &str) -> String {
 }
 
 #[wasm_bindgen]
+/// Return a sudoku where all cell with only 1 possibility are set
 pub fn solve_common(sudoku: &str) -> String {
     let s = Variant::from_str_line(sudoku).unwrap();
     let vec = s.solutions_up_to(1000);
@@ -114,6 +111,8 @@ pub fn solve_common(sudoku: &str) -> String {
 }
 
 #[wasm_bindgen]
+/// Return the set of number for every cell if the number
+/// of solution is under limit
 pub fn solve_common_extra(sudoku: &str, limit: usize) -> String {
     let s = Variant::from_str_line(sudoku).unwrap();
     let vec = s.solutions_up_to(limit);
@@ -121,7 +120,7 @@ pub fn solve_common_extra(sudoku: &str, limit: usize) -> String {
         "Too many solution".to_string()
     } else if vec.len() > 0 {
         let mut sets = Vec::new();
-        for i in 0..81 {
+        for _ in 0..81 {
             sets.push(HashSet::new());
         }
         for Sudoku(v) in vec {
@@ -136,6 +135,7 @@ pub fn solve_common_extra(sudoku: &str, limit: usize) -> String {
 }
 
 #[wasm_bindgen]
+/// Generate a new grid without variant
 pub fn generate() -> String {
     let s = Sudoku::generate_with_symmetry(Symmetry::None);
     let line: &str = &s.to_str_line();
@@ -143,6 +143,8 @@ pub fn generate() -> String {
 }
 
 #[wasm_bindgen]
+/// Expect a sudoku with variants and return the number of solution
+/// while calling the console.notify function in javascript
 pub fn solution_count_notify(sudoku: &str, limit: usize) -> usize {
     fn forward(n: Notification) {
         let (notification, count) = match n {
@@ -162,6 +164,7 @@ pub fn solution_count_notify(sudoku: &str, limit: usize) -> usize {
 }
 
 #[wasm_bindgen]
+/// Expect a sudoku with variants and return the number of solution
 pub fn solution_count(sudoku: &str) -> usize {
     let s = Variant::from_str_line(sudoku).unwrap();
     s.solutions_count_up_to(1000)

@@ -1,3 +1,4 @@
+//! Errors
 #[cfg(doc)]
 use crate::Sudoku;
 
