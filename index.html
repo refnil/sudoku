@@ -66,9 +66,11 @@
         <div id="sudoku" class="sudoku">
           <div id='diag_pos_vis'></div>
           <div id='diag_neg_vis'></div>
-          <svg xmlns="http://www.w3.org/2000/svg" class="svg" viewbox="0 0 900 900">
+          <svg xmlns="http://www.w3.org/2000/svg" class="svg above" viewbox="0 0 900 900">
+            <g id="difference_svg" class="above"></g>
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="svg bellow" viewbox="0 0 900 900">
             <g id="thermo_svg"></g>
-            <g id="difference_svg"></g>
           </svg>
         </div>
       </div>
@@ -135,6 +137,12 @@
       </div>
       <p id="puzzle_message"></p>
       <p id="puzzle_variant_rule"></p>
+      <details>
+        <summary>App info</summary>
+        <a href="https://github.com/refnil/sudoku/">Source on github</a>
+        <a href="https://github.com/refnil/sudoku/issues/new/choose">Open an issue</a>
+        Thanks for trying my sudoku app.
+      </details>
     </div>
     </div>
   </body>
