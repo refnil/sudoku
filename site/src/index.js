@@ -543,6 +543,9 @@ function update_variant_visual(){
   if (thermo_data.length != 0) {
     content += "The number are growing along a thermometer from the bubble to the tip. ";
   }
+  if (difference_data.length != 0) {
+    content += "A number in a green circle between two cells is the difference of these two cells. ";
+  }
   puzzle_variant_rule.innerHTML = content;
 
   // Keyboard
