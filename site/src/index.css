@@ -224,12 +224,20 @@ span {
 }
 
 .svg {
-  z-index: -1;
   position: absolute;
+  pointer-events: none;
   top: 0px;
   left: 0px;
   right: 0px;
   bottom: 0px;
+}
+
+.above {
+  z-index: 1;
+}
+
+.bellow {
+  z-index: -1;
 }
 
 .diag {

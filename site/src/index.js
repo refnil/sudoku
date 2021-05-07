@@ -1106,10 +1106,10 @@ function draw_difference(difference) {
   var o = (o1 + o2) / 2;
 
   var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  circle.setAttributeNS(null, "r", 35);
+  circle.setAttributeNS(null, "r", 20);
   circle.setAttributeNS(null, "cx", l);
   circle.setAttributeNS(null, "cy", o);
-  circle.setAttributeNS(null, "stroke", "FireBrick");
+  circle.setAttributeNS(null, "stroke", "DarkSeaGreen");
   circle.setAttributeNS(null, "stroke-width", "4");
   circle.setAttributeNS(null, "fill", "rgb(255,255,255)");
   difference_svg.appendChild(circle);
@@ -1119,6 +1119,9 @@ function draw_difference(difference) {
     var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     text.setAttributeNS(null, "x", l);
     text.setAttributeNS(null, "y", o);
+    text.setAttributeNS(null, "text-anchor", "middle");
+    text.setAttributeNS(null, "dominant-baseline", "middle");
+    text.setAttributeNS(null, "font-size", "1.8em");
     text.innerHTML = number;
     difference_svg.appendChild(text);
   }
