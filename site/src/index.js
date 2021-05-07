@@ -1190,7 +1190,7 @@ if (par_solve_only != null){
   if (app_mode == 'setter') {
     change_mode(true);
   }
-  document.getElementById("app_mode_button").remove();
+  document.getElementById("app_mode_button").classList.add("hidden");
 }
 
 function set_value_if_param(param, edit){
