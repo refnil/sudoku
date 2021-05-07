@@ -718,7 +718,7 @@ function get_puzzle_info() {
   var info = "";
   function add(name, edit){
     if (edit.value) {
-      info += "&" + name + "=" + encodeURIComponent(puzzle_name_edit.value);
+      info += "&" + name + "=" + encodeURIComponent(edit.value);
     }
   }
   add("name", puzzle_name_edit);
