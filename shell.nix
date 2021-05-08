@@ -7,6 +7,10 @@ let
   rust =  pkgs.rust-bin.stable.latest.minimal.override {
     extensions = [
       "rustfmt-preview"
+      "rls" 
+      "rust-analysis"
+      "rust-src"
+      "clippy"
     ];
     targets = [
       "wasm32-unknown-unknown"
