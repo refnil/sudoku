@@ -4,6 +4,70 @@ import { createSignal, createMemo, createContext, useContext, createSelector, on
 import { createStore } from "solid-js/store";
 import { render } from 'solid-js/web';
 
+class BaseMode {
+    log(method, args) {
+        console.debug(this.constructor.name, method, args);
+    }
+}
+
+export const PuzzleContext = createContext();
+function usePuzzle() {
+    return useContext(PuzzleContext);
+}
+export function PuzzleProvider(props) {
+  const [state, setState] = createStore({
+      name: '',
+      author: '',
+      extraRules: '',
+      grid: {
+          rules: {
+          },
+          cells: Array(81).fill(null)
+      }
+  });
+  const counter = 
+  {
+    puzzle: state,
+    setName(name) {
+        setState({name: name});
+    },
+    setAuthor(author) {
+        setState({author: author});
+    },
+    setExtraRules(rules) {
+        setState({extraRules: rules});
+    },
+    setCell(cell_id, value) {
+        setState("grid", "cells", cell_id, value);
+    }
+  };
+
+  return (
+    <PuzzleContext.Provider value={counter}>
+      {props.children}
+    </PuzzleContext.Provider>
+  );
+}
+
+export const KeyboardModeContext = createContext();
+function useKeyboardMode() {
+    return useContext(KeyboardModeContext);
+}
+export function KeyboardModeProvider(props) {
+  const { setCell } = usePuzzle()
+  const KeyboardMode = {
+      FullCell: new FullCellKeyboard(setCell)
+  }
+  const [state, setState] = createStore(KeyboardMode.FullCell);
+  const value = [state, setState, KeyboardMode];
+
+  return (
+    <KeyboardModeContext.Provider value={value}>
+      {props.children}
+    </KeyboardModeContext.Provider>
+  );
+}
+
 const SetterTab = () => {
     const { puzzle, setName, setAuthor, setExtraRules } = usePuzzle();
     return (
@@ -55,6 +119,50 @@ const SetterTab = () => {
         </details>
       </div>
     );
+}
+
+class BaseKeyboardMode extends BaseMode {
+    key() {
+        this.log("key");
+    }
+    handle_event(key) {
+        if (key == "Delete" || key == "Backspace") {
+            this.handle_delete();
+        }
+        else {
+            this.handle_key(key);
+        }
+    }
+    handle_delete() {
+        this.log("handle_delete");
+    }
+    handle_key(key) {
+        this.log("handle_key", key);
+    }
+}
+
+class FullCellKeyboard extends BaseKeyboardMode {
+    constructor(setCell) {
+        super();
+        this.setCell = setCell;
+    }
+    key() {
+        return [1,2,3,4,5,6,7,8,9];
+    }
+    handle_delete() {
+        this.setAll(null);
+    }
+    handle_key(key) {
+        key = parseInt(key) || key;
+        if (Number.isInteger(key) && key >= 1 && key <= 9) {
+            this.setAll(key);
+        }
+    }
+    setAll(value) {
+        for (let cell_id of selectedSet()) {
+            this.setCell(cell_id, value);
+        }
+    }
 }
 
 const SolverTab = () => {
@@ -154,17 +262,13 @@ const CellComponent = ({cell, index, mouseDown, mouseOver, isCellSelected}) => {
             onMouseDown={mouseDown()(index())}
             onMouseOver={mouseOver()(index())}
         >
-        <span class="middle-cell">{cell.setter?.middle}</span>
-        {cell.setter?.value}
+        <span class="middle-cell"></span>
+        {cell}
         </li>
     );
 }
 
-
-class MouseMode {
-    log(method, args) {
-        console.log(this.constructor.name, method, args);
-    }
+class BaseMouseMode extends BaseMode {
     add(...args) {
         this.log("add", args);
     }
@@ -176,61 +280,49 @@ class MouseMode {
     }
 }
 
-class SelectionMode extends MouseMode{
+const [lastCellOver, setLastCellOver] = createSignal(null);
+const [isMouseDown, setIsMouseDown] = createSignal(false);
+const [selectedSet, setSelectedSet] = createSignal(new Set());
+const isCellSelected = createSelector(selectedSet, (index, s) => s.has(index));
+
+class SelectionMode extends BaseMouseMode{
+    add(index) {
+        setSelectedSet((s) => {
+            if (s.has(index)) {
+                return s;
+            }
+            const n = new Set(s);
+            n.add(index);
+            return n;
+        });
+    }
+    clear(index, shift) {
+        if (!shift) {
+            setSelectedSet(new Set());
+        }
+    }
 }
 
 const MouseMode = {
-    Selection: "selection",
+    Selection: new SelectionMode()
 }
+const [mouseMode, setMouseMode] = createSignal(MouseMode.Selection);
 
 const GridComponent = () => {
     const { puzzle } = usePuzzle();
-    const [mouseMode, setMouseMode] = createSignal(MouseMode.Selection);
-    const [lastCellOver, setLastCellOver] = createSignal(null);
-    const [isMouseDown, setIsMouseDown] = createSignal(false);
-    const [selectedSet, setSelectedSet] = createSignal(new Set());
-    const isCellSelected = createSelector(selectedSet, (index, s) => s.has(index));
-
-    const MouseAdd = {
-        [MouseMode.Selection]: function(index) {
-            setSelectedSet((s) => {
-                if (s.has(index)) {
-                    return s;
-                }
-                const n = new Set(s);
-                n.add(index);
-                return n;
-            });
-        }
-    }
-
-    const MouseClear = {
-        [MouseMode.Selection]: function(index, shift) {
-            if (!shift) {
-                setSelectedSet(new Set());
-            }
-        }
-    }
-
-    const MouseFinishClick = {
-        [MouseMode.Selection]: function() {
-            console.log("finish");
-        }
-    }
 
     const cellMouseDown = createMemo(() => (index) => (event) => {
         const mode = mouseMode();
-        MouseClear[mode](index, event.shiftKey);
-        MouseAdd[mode](index);
+        mode.clear(index, event.shiftKey);
+        mode.add(index);
     });
 
     const cellMouseOver = createMemo(() => (index) => (event) => {
         setLastCellOver(index);
-        const mode = mouseMode();
         if (isMouseDown()) {
             setTimeout(() => {
                 if (index == lastCellOver() && isMouseDown()) {
-                    MouseAdd[mode](index);
+                    mouseMode().add(index);
                     setLastCellOver(null);
                 }
             }, 20);
@@ -243,17 +335,24 @@ const GridComponent = () => {
 
     function mouseUp() {
         setIsMouseDown(false);
-        MouseFinishClick[mouseMode()]();
+        mouseMode().finish_click();
+    }
+
+    const [keyboardMode,_s, _a] = useKeyboardMode();
+    function onKeyDown(event) {
+        keyboardMode.handle_event(event.key);
     }
 
     onMount(() => {
         document.addEventListener("mousedown", mouseDown);
         document.addEventListener("mouseup", mouseUp);
+        document.addEventListener("keydown", onKeyDown);
     })
 
     onCleanup(() => {
         document.removeEventListener("mousedown", mouseDown);
         document.removeEventListener("mouseup", mouseUp);
+        document.removeEventListener("keydown", onKeyDown);
     })
 
     return (
@@ -267,42 +366,7 @@ const GridComponent = () => {
     );
 }
 
-export const PuzzleContext = createContext();
-function usePuzzle() {
-    return useContext(PuzzleContext);
-}
 
-export function PuzzleProvider(props) {
-  const [state, setState] = createStore({
-      name: '',
-      author: '',
-      extraRules: '',
-      grid: {
-          rules: {
-          },
-          cells: Array(81).fill({})
-      }
-  });
-  const counter = 
-  {
-    puzzle: state,
-    setName(name) {
-        setState({name: name});
-    },
-    setAuthor(author) {
-        setState({author: author});
-    },
-    setExtraRules(rules) {
-        setState({extraRules: rules});
-    }
-  };
-
-  return (
-    <PuzzleContext.Provider value={counter}>
-      {props.children}
-    </PuzzleContext.Provider>
-  );
-}
 
 function Header() {
     const { puzzle } = usePuzzle();
@@ -314,15 +378,18 @@ function Header() {
     );
 }
 
+
 const App = () => {
   return (
     <PuzzleProvider>
+    <KeyboardModeProvider>
     <Header/>
     <div class="sudoku-container">
       <SetterTab />
       <GridComponent/>
       <SolverTab/>
     </div>
+    </KeyboardModeProvider>
     </PuzzleProvider>
   );
 };
