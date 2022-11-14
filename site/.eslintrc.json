@@ -3,27 +3,18 @@
         "browser": true,
         "es2021": true
     },
-    "extends": "eslint:recommended",
+    "extends": [
+        "standard",
+        "eslint:recommended",
+        "plugin:solid/recommended"
+    ],
     "parserOptions": {
-        "sourceType": "module",
-        "ecmaVersion": 12
+        "ecmaVersion": 12,
+        "sourceType": "module"
     },
     "rules": {
-        "indent": [
-            "error",
-            4
-        ],
-        "linebreak-style": [
-            "error",
-            "unix"
-        ],
-        "quotes": [
-            "error",
-            "double"
-        ],
-        "semi": [
-            "error",
-            "always"
-        ]
-    }
+    },
+    "plugins": [
+        "solid"
+    ]
 }
