@@ -3,6 +3,7 @@ import './index.css'
 import { render } from 'solid-js/web'
 
 import { KeyboardModeProvider } from './providers/keyboard-mode.js'
+import { MouseModeProvider } from './providers/mouse-mode.js'
 import { PuzzleProvider, usePuzzle } from './providers/puzzle.js'
 
 import { SetterTab } from './tabs/setter.js'
@@ -37,6 +38,7 @@ function Header () {
 const App = () => {
   return (
     <PuzzleProvider>
+    <MouseModeProvider>
     <KeyboardModeProvider>
     <Header/>
     <div class="sudoku-container">
@@ -45,6 +47,7 @@ const App = () => {
       <SolverTab/>
     </div>
     </KeyboardModeProvider>
+    </MouseModeProvider>
     </PuzzleProvider>
   )
 }

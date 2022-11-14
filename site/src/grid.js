@@ -1,12 +1,17 @@
-import { createMemo, For, onMount, onCleanup } from 'solid-js'
+import { For, createMemo } from 'solid-js'
 import { usePuzzle } from './providers/puzzle.js'
-import { useKeyboardMode } from './providers/keyboard-mode.js'
+import { useMouseMode } from './providers/mouse-mode.js'
 
 const CellComponent = (props) => {
+  const mouseMode = useMouseMode()[0]
+  const mouseDown = createMemo(() => mouseMode().click(props.index()))
+  const mouseOver = createMemo(() => mouseMode().over(props.index()))
+  const isSelected = createMemo(() => mouseMode().isSelected(props.index()))
+
   return (
-        <li classList={{ selected: props.isCellSelected(props.index()) }}
-            onMouseDown={props.mouseDown()(props.index())}
-            onMouseOver={props.mouseOver()(props.index())}
+        <li classList={{ selected: isSelected() }}
+            onMouseDown={mouseDown()}
+            onMouseOver={mouseOver()}
         >
         <span class="middle-cell" />
         {props.cell}
@@ -17,38 +22,11 @@ const CellComponent = (props) => {
 export const GridComponent = () => {
   const { puzzle } = usePuzzle()
 
-
-  function mouseDown () {
-    setIsMouseDown(true)
-  }
-
-  function mouseUp () {
-    setIsMouseDown(false)
-    mouseMode().finish_click()
-  }
-
-  const keyboardMode = useKeyboardMode()[0]
-  function onKeyDown (event) {
-    keyboardMode().handle_event(event.key)
-  }
-
-  onMount(() => {
-    document.addEventListener('mousedown', mouseDown)
-    document.addEventListener('mouseup', mouseUp)
-    document.addEventListener('keydown', onKeyDown)
-  })
-
-  onCleanup(() => {
-    document.removeEventListener('mousedown', mouseDown)
-    document.removeEventListener('mouseup', mouseUp)
-    document.removeEventListener('keydown', onKeyDown)
-  })
-
   return (
         <div><div id="sudoku" class="sudoku">
         <ul>
         <For each={puzzle.grid.cells}>
-          {(cell, index) => <CellComponent cell={cell} index={index} mouseDown={cellMouseDown} mouseOver={cellMouseOver} isCellSelected={isCellSelected}/>}
+          {(cell, index) => <CellComponent cell={cell} index={index}/>}
         </For>
         </ul>
         </div></div>

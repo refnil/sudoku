@@ -2,6 +2,33 @@ import { createSignal, createSelector } from 'solid-js'
 import { BaseMode } from './base.js'
 
 class BaseMouseMode extends BaseMode {
+  constructor (mouseDown) {
+    super()
+    this.lastCellHoverSignal = createSignal(null)
+    this.isMouseDown = mouseDown
+  }
+
+  click (index) {
+    return (event) => {
+      this.clear(index, event.shiftKey)
+      this.add(index)
+    }
+  }
+
+  over (index) {
+    return (event) => {
+      this.lastCellHoverSignal[1](index)
+      if (this.isMouseDown()) {
+        setTimeout(() => {
+          if (index === this.lastCellHoverSignal[0]() && this.isMouseDown()) {
+            this.add(index)
+            this.lastCellHoverSignal[1](null)
+          }
+        }, 20)
+      }
+    }
+  }
+
   add (...args) {
     this.log('add', args)
   }
@@ -13,16 +40,27 @@ class BaseMouseMode extends BaseMode {
   finish_click (...args) {
     this.log('finish_click', args)
   }
+
+  isSelected (...args) {
+    this.log('isSelected', args)
+    return false
+  }
+  
+  selected() {
+      this.log('selected');
+      return new Set();
+  }
 }
 
-const [lastCellOver, setLastCellOver] = createSignal(null)
-const [isMouseDown, setIsMouseDown] = createSignal(false)
-const [selectedSet, setSelectedSet] = createSignal(new Set())
-const isCellSelected = createSelector(selectedSet, (index, s) => s.has(index))
-
 export class SelectionMode extends BaseMouseMode {
+  constructor (mouseDown) {
+    super(mouseDown)
+    this.selectedSetSignal = createSignal(new Set())
+    this.isCellSelected = createSelector(this.selectedSetSignal[0], (index, s) => s.has(index))
+  }
+
   add (index) {
-    setSelectedSet((s) => {
+    this.selectedSetSignal[1]((s) => {
       if (s.has(index)) {
         return s
       }
@@ -34,12 +72,16 @@ export class SelectionMode extends BaseMouseMode {
 
   clear (index, shift) {
     if (!shift) {
-      setSelectedSet(new Set())
+      this.selectedSetSignal[1](new Set())
     }
   }
-}
 
-const MouseMode = {
-  Selection: new SelectionMode()
+  isSelected (index) {
+    return this.isCellSelected(index)
+  }
+
+  selected () {
+    return this.selectedSetSignal[0]()
+  }
+
 }
-const [mouseMode, setMouseMode] = createSignal(MouseMode.Selection)

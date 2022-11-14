@@ -1,6 +1,10 @@
 import { BaseMode } from './base.js'
 
 class BaseKeyboardMode extends BaseMode {
+    constructor(mouseMode) {
+        super()
+        this.mouseMode = mouseMode
+    }
   render () {
     this.log('render')
   }
@@ -23,8 +27,8 @@ class BaseKeyboardMode extends BaseMode {
 }
 
 export class FullCellKeyboard extends BaseKeyboardMode {
-  constructor (setCell) {
-    super()
+  constructor (mouseMode, setCell) {
+    super(mouseMode)
     this.setCell = setCell
   }
 
@@ -57,8 +61,9 @@ export class FullCellKeyboard extends BaseKeyboardMode {
   }
 
   setAll (value) {
-    for (const cell_id of selectedSet()) {
-      this.setCell(cell_id, value)
+      console.log(this.mouseMode);
+    for (const cellId of this.mouseMode().selected()) {
+      this.setCell(cellId, value)
     }
   }
 }
