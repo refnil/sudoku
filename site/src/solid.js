@@ -56,9 +56,12 @@ function useKeyboardMode() {
 export function KeyboardModeProvider(props) {
   const { setCell } = usePuzzle()
   const KeyboardMode = {
-      FullCell: new FullCellKeyboard(setCell)
+      FullCell: new FullCellKeyboard(setCell),
+      MiddleCell: new MiddleCellKeyboard(),
+      CornerCell: new CornerCellKeyboard(),
+      ColorCell: new ColorCellKeyboard()
   }
-  const [state, setState] = createStore(KeyboardMode.FullCell);
+  const [state, setState] = createSignal(KeyboardMode.FullCell);
   const value = [state, setState, KeyboardMode];
 
   return (
@@ -70,10 +73,31 @@ export function KeyboardModeProvider(props) {
 
 const SetterTab = () => {
     const { puzzle, setName, setAuthor, setExtraRules } = usePuzzle();
+    function generateNewSudoku() {
+        console.log("generateNewSudoku");
+    }
+    function clearComputer() {
+        console.log("clearComputer");
+    }
+    function resetGrid() {
+        console.log("resetGrid");
+    }
+    const toggleSimpleVariant = (variantName) => () => {
+        console.log("toggle", variantName);
+    }
+    function thermoEdit() {
+        console.log("thermo edit");
+    }
+    function thermoDelete() {
+        console.log("thermo delete");
+    }
+    function difference() {
+        console.log("difference");
+    }
     return (
       <div class="sudoku-side">
         <h2>Setter menu</h2>
-        <button id='reset'>New grid</button>
+        <button onClick={resetGrid}>New grid</button>
         <details>
           <summary>Puzzle informations editor</summary>
           <label>Name</label><input value={puzzle.name} onInput={(e) => setName(e.target.value)}/>
@@ -83,26 +107,26 @@ const SetterTab = () => {
         </details>
         <h3>Computational operation</h3>
         <p>
-        <button id='new'>Generate random sudoku</button>
+        <button onClick={generateNewSudoku}>Generate random sudoku</button>
         <button id='solve'>Solve</button>
-        <button id='clear_computer'>Clear computer hint</button>
+        <button onClick={clearComputer}>Clear computer hint</button>
         </p>
         <p>Solution count: <span id='count'></span></p>
         <p id="solve_result_message" class="hidden">Solve result message: <span id='solve_result_message_text'></span></p>
         <h3>Constraints</h3>
         <p>
-        <button id='diag_pos_button'>Diagonal +</button>
-        <button id='diag_neg_button'>Diagonal -</button>
-        <button id='king_button'>King move</button>
-        <span id="thermo" class="merge_button">
-          <button>Thermo</button><button class="toggle-no-addon">&#x1F5D1;</button>
+        <button onClick={toggleSimpleVariant("diag_pos")}>Diagonal +</button>
+        <button onClick={toggleSimpleVariant("diag_neg")}>Diagonal -</button>
+        <button onClick={toggleSimpleVariant("king")}>King move</button>
+        <span class="merge_button">
+          <button onClick={thermoEdit}>Thermo</button><button onClick={thermoDelete} class="toggle-no-addon">&#x1F5D1;</button>
         </span>
-        <button id="difference">Difference</button>
+        <button onClick={difference}>Difference</button>
         </p>
         <h3>Sharing</h3>
-        <p><a id="setting_url">Setting url</a></p>
-        <p><a id="solving_url">Solving url</a></p>
-        <p><a id="sudokuwiki">Export to sudokuwiki</a></p>
+        <p><a>Setting url</a></p>
+        <p><a>Solving url</a></p>
+        <p><a>Export to sudokuwiki</a></p>
         <h3>Other</h3>
         <details>
           <summary>Setter settings</summary>
@@ -122,8 +146,8 @@ const SetterTab = () => {
 }
 
 class BaseKeyboardMode extends BaseMode {
-    key() {
-        this.log("key");
+    render() {
+        this.log("render");
     }
     handle_event(key) {
         if (key == "Delete" || key == "Backspace") {
@@ -146,8 +170,21 @@ class FullCellKeyboard extends BaseKeyboardMode {
         super();
         this.setCell = setCell;
     }
-    key() {
-        return [1,2,3,4,5,6,7,8,9];
+    render() {
+      return (
+      <div id="number" class="keyboard">
+        <button>1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>4</button>
+        <button>5</button>
+        <button>6</button>
+        <button>7</button>
+        <button>8</button>
+        <button>9</button>
+        <button class="delete">Delete</button>
+      </div>
+      );
     }
     handle_delete() {
         this.setAll(null);
@@ -165,13 +202,10 @@ class FullCellKeyboard extends BaseKeyboardMode {
     }
 }
 
-const SolverTab = () => {
-    const { puzzle } = usePuzzle();
-    return (
-    <div class="sudoku-side column">
-      <div class="row">
-      <div class="keyboard-container">
-      <div id="number" class="keyboard">
+class MiddleCellKeyboard extends BaseKeyboardMode {
+    render() {
+        return (
+      <div id="middle-number" class="keyboard middle-cell">
         <button>1</button>
         <button>2</button>
         <button>3</button>
@@ -183,7 +217,14 @@ const SolverTab = () => {
         <button>9</button>
         <button class="delete">Delete</button>
       </div>
-      <div id="corner-number" class="keyboard hidden">
+        );
+    }
+}
+
+class CornerCellKeyboard extends BaseKeyboardMode {
+    render() {
+        return (
+      <div id="corner-number" class="keyboard">
         <button><span class="top-left">1</span></button>
         <button><span class="top-middle">2</span></button>
         <button><span class="top-right">3</span></button>
@@ -195,19 +236,14 @@ const SolverTab = () => {
         <button><span class="bottom-right">9</span></button>
         <button class="delete">Delete</button>
       </div>
-      <div id="middle-number" class="keyboard hidden middle-cell">
-        <button>1</button>
-        <button>2</button>
-        <button>3</button>
-        <button>4</button>
-        <button>5</button>
-        <button>6</button>
-        <button>7</button>
-        <button>8</button>
-        <button>9</button>
-        <button class="delete">Delete</button>
-      </div>
-      <div id="color" class="keyboard hidden">
+        );
+    }
+}
+
+class ColorCellKeyboard extends BaseKeyboardMode {
+    render() {
+        return (
+      <div id="color" class="keyboard">
         <button></button>
         <button></button>
         <button></button>
@@ -219,13 +255,35 @@ const SolverTab = () => {
         <button></button>
         <button class="delete">Delete</button>
       </div>
+        );
+    }
+}
+
+const SolverTab = () => {
+    const { puzzle } = usePuzzle();
+    const [keyboardMode, setKeyboardMode, KeyboardModes] = useKeyboardMode();
+    const Keyboard = createMemo(() => keyboardMode().render);
+
+    const switchTo = (mode) => () => {
+        console.log(mode);
+        setKeyboardMode(mode);
+    };
+
+    return (
+    <div class="sudoku-side column">
+      <div class="row">
+      <div class="keyboard-container">
+        {() => {
+            let Base = Keyboard();
+            return <Base/>;
+        }}
       </div>
       <div class="column">
         <button id='app_mode_button'>Mode: <span id='app_mode'>setter</span></button>
-        <button id="key_number">Number</button>
-        <button id="key_corner">Corner</button>
-        <button id="key_middle">Center</button>
-        <button id="key_color">Color</button>
+        <button onClick={switchTo(KeyboardModes.FullCell)}>Number</button>
+        <button onClick={switchTo(KeyboardModes.CornerCell)}>Corner</button>
+        <button onClick={switchTo(KeyboardModes.MiddleCell)}>Center</button>
+        <button onClick={switchTo(KeyboardModes.ColorCell)}>Color</button>
         <button id='clear'>Clear progress</button>
       </div>
       </div>
@@ -340,7 +398,7 @@ const GridComponent = () => {
 
     const [keyboardMode,_s, _a] = useKeyboardMode();
     function onKeyDown(event) {
-        keyboardMode.handle_event(event.key);
+        keyboardMode().handle_event(event.key);
     }
 
     onMount(() => {
