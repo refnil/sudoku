@@ -1,21 +1,21 @@
 import "./index.css";
 
-import { createSignal, createMemo, createContext, useContext } from 'solid-js';
+import { createSignal, createMemo, createContext, useContext, createSelector, onMount, onCleanup } from 'solid-js';
 import { createStore } from "solid-js/store";
 import { render } from 'solid-js/web';
 
 const SetterTab = () => {
-    const { name, setName, author, setAuthor } = usePuzzle();
+    const { puzzle, setName, setAuthor, setExtraRules } = usePuzzle();
     return (
       <div class="sudoku-side">
         <h2>Setter menu</h2>
         <button id='reset'>New grid</button>
         <details>
           <summary>Puzzle informations editor</summary>
-          <label>Name</label><input value={name()} onInput={(e) => setName(e.target.value)}/>
-          <label>Author</label><input value={author()} onInput={(e) => setAuthor(e.target.value)}/>
+          <label>Name</label><input value={puzzle.name} onInput={(e) => setName(e.target.value)}/>
+          <label>Author</label><input value={puzzle.author} onInput={(e) => setAuthor(e.target.value)}/>
           <label>Rules:</label>
-          <textarea id="puzzle_message_edit"></textarea>
+          <textarea value={puzzle.extraRules} onInput={(e) => setExtraRules(e.target.value)}></textarea>
         </details>
         <h3>Computational operation</h3>
         <p>
@@ -58,6 +58,7 @@ const SetterTab = () => {
 }
 
 const SolverTab = () => {
+    const { puzzle } = usePuzzle();
     return (
     <div class="sudoku-side column">
       <div class="row">
@@ -120,7 +121,7 @@ const SolverTab = () => {
         <button id='clear'>Clear progress</button>
       </div>
       </div>
-      <p id="puzzle_message"></p>
+      <p>{puzzle.extraRules}</p>
       <p id="puzzle_variant_rule"></p>
       <details>
         <summary>App info</summary>
@@ -144,25 +145,122 @@ var corner_names = [
     "bottom-right",
 ];
 
-const CellComponent = ({cell, index}) => {
+const CellComponent = ({cell, index, mouseDown, mouseOver, isCellSelected}) => {
     // li events
     // mousedown cell_click 
     // mouseover cell_over
     return (
-        <li>
+        <li classList={{selected: isCellSelected(index())}} 
+            onMouseDown={mouseDown()(index())}
+            onMouseOver={mouseOver()(index())}
+        >
         <span class="middle-cell">{cell.setter?.middle}</span>
         {cell.setter?.value}
         </li>
     );
 }
 
+
+class MouseMode {
+    log(method, args) {
+        console.log(this.constructor.name, method, args);
+    }
+    add(...args) {
+        this.log("add", args);
+    }
+    clear(...args) {
+        this.log("clear", args);
+    }
+    finish_click(...args) {
+        this.log("finish_click", args);
+    }
+}
+
+class SelectionMode extends MouseMode{
+}
+
+const MouseMode = {
+    Selection: "selection",
+}
+
 const GridComponent = () => {
-    let cells = Array(81).fill({setter: {value:'', middle:''}})
+    const { puzzle } = usePuzzle();
+    const [mouseMode, setMouseMode] = createSignal(MouseMode.Selection);
+    const [lastCellOver, setLastCellOver] = createSignal(null);
+    const [isMouseDown, setIsMouseDown] = createSignal(false);
+    const [selectedSet, setSelectedSet] = createSignal(new Set());
+    const isCellSelected = createSelector(selectedSet, (index, s) => s.has(index));
+
+    const MouseAdd = {
+        [MouseMode.Selection]: function(index) {
+            setSelectedSet((s) => {
+                if (s.has(index)) {
+                    return s;
+                }
+                const n = new Set(s);
+                n.add(index);
+                return n;
+            });
+        }
+    }
+
+    const MouseClear = {
+        [MouseMode.Selection]: function(index, shift) {
+            if (!shift) {
+                setSelectedSet(new Set());
+            }
+        }
+    }
+
+    const MouseFinishClick = {
+        [MouseMode.Selection]: function() {
+            console.log("finish");
+        }
+    }
+
+    const cellMouseDown = createMemo(() => (index) => (event) => {
+        const mode = mouseMode();
+        MouseClear[mode](index, event.shiftKey);
+        MouseAdd[mode](index);
+    });
+
+    const cellMouseOver = createMemo(() => (index) => (event) => {
+        setLastCellOver(index);
+        const mode = mouseMode();
+        if (isMouseDown()) {
+            setTimeout(() => {
+                if (index == lastCellOver() && isMouseDown()) {
+                    MouseAdd[mode](index);
+                    setLastCellOver(null);
+                }
+            }, 20);
+        }
+    });
+
+    function mouseDown() {
+        setIsMouseDown(true);
+    }
+
+    function mouseUp() {
+        setIsMouseDown(false);
+        MouseFinishClick[mouseMode()]();
+    }
+
+    onMount(() => {
+        document.addEventListener("mousedown", mouseDown);
+        document.addEventListener("mouseup", mouseUp);
+    })
+
+    onCleanup(() => {
+        document.removeEventListener("mousedown", mouseDown);
+        document.removeEventListener("mouseup", mouseUp);
+    })
+
     return (
         <div><div id="sudoku" class="sudoku">
         <ul>
-        <For each={cells}>
-          {(cell, index) => <CellComponent cell={cell} index={index}/>}
+        <For each={puzzle.grid.cells}>
+          {(cell, index) => <CellComponent cell={cell} index={index} mouseDown={cellMouseDown} mouseOver={cellMouseOver} isCellSelected={isCellSelected}/>}
         </For>
         </ul>
         </div></div>
@@ -178,23 +276,25 @@ export function PuzzleProvider(props) {
   const [state, setState] = createStore({
       name: '',
       author: '',
-      extraRules: ''
+      extraRules: '',
+      grid: {
+          rules: {
+          },
+          cells: Array(81).fill({})
+      }
   });
   const counter = 
   {
-    state: state,
-    name() {
-        return state.name;
-    },
+    puzzle: state,
     setName(name) {
         setState({name: name});
-    },
-    author() {
-        return state.author;
     },
     setAuthor(author) {
         setState({author: author});
     },
+    setExtraRules(rules) {
+        setState({extraRules: rules});
+    }
   };
 
   return (
@@ -205,11 +305,11 @@ export function PuzzleProvider(props) {
 }
 
 function Header() {
-    const { name, author } = usePuzzle();
+    const { puzzle } = usePuzzle();
     return (
         <center>
-          <h1>{name()||"Sudoku"}</h1>
-          <h2 class={!author?"hidden":""}>{author}</h2>
+          <h1>{puzzle.name||"Sudoku"}</h1>
+          <h2 class={!puzzle.author?"hidden":""}>{puzzle.author}</h2>
         </center>
     );
 }
