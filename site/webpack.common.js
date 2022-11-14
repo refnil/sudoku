@@ -35,6 +35,6 @@ module.exports = {
         extensions: [".js"],
     },
     devServer: {
-        contentBase: "./dist",
+        static: "./dist",
     },
 };
