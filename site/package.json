@@ -6,6 +6,9 @@
     "build-prod": "webpack build --config webpack.prod.js"
   },
   "dependencies": {
+    "babel-loader": "^9.1.0",
+    "babel-preset-solid": "^1.6.2",
+    "solid-js": "^1.6.2",
     "sudoku": "file:../pkg",
     "water.css": "^2.0.0"
   },
