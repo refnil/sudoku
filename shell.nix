@@ -22,5 +22,6 @@ in pkgs.mkShell {
     pkgs.wasm-pack
     pkgs.nodejs
     pkgs.cargo-watch
+    pkgs.simple-http-server
   ];
 }
