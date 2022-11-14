@@ -1,45 +1,44 @@
 
-var workers = new Map();
-var finished = new Set();
-var requests = new Map();
-var responses = new Map();
+const workers = new Map()
+const finished = new Set()
+const requests = new Map()
+const responses = new Map()
 
-function get_worker(key) {
-  var worker = workers.get(key);
-  var is_finished = finished.has(key);
+function get_worker (key) {
+  let worker = workers.get(key)
+  const is_finished = finished.has(key)
   if (!is_finished) {
     if (worker != undefined) {
-      worker.terminate();
+      worker.terminate()
     }
-    worker = new Worker(new URL('./sudoku-caller.js', import.meta.url));
+    worker = new Worker(new URL('./sudoku-caller.js', import.meta.url))
   }
-  return worker;
+  return worker
 }
 
 self.onmessage = (m) => {
-  var key = m.data[0];
-  var arg = m.data[1]+m.data[2];
+  const key = m.data[0]
+  const arg = m.data[1] + m.data[2]
   if (requests.get(key) == arg) {
-    var resp = responses.get(key);
+    const resp = responses.get(key)
     if (resp != undefined) {
-      postMessage(resp);
+      postMessage(resp)
     }
-    return;
+    return
   }
 
-  var worker = get_worker(key);
+  const worker = get_worker(key)
   worker.onmessage = (r) => {
-    if (r.data == "finish") {
-      finished.add(key);
-    }
-    else {
-      postMessage(r.data);
-      responses.set(key, r.data);
+    if (r.data == 'finish') {
+      finished.add(key)
+    } else {
+      postMessage(r.data)
+      responses.set(key, r.data)
     }
   }
-  worker.postMessage(m.data);
-  workers.set(key, worker);
-  requests.set(key, arg);
-  finished.delete(key);
-  responses.delete(key);
+  worker.postMessage(m.data)
+  workers.set(key, worker)
+  requests.set(key, arg)
+  finished.delete(key)
+  responses.delete(key)
 }
