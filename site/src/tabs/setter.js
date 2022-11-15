@@ -1,7 +1,9 @@
+import { createSignal } from 'solid-js'
 import { usePuzzle } from '../providers/puzzle.js'
 
 export function SetterTab () {
-  const { puzzle, setName, setAuthor, setExtraRules } = usePuzzle()
+  const { puzzle, setName, setAuthor, setExtraRules, loadSudokuLine, exportSudokuLine } = usePuzzle()
+  const [sudokuLine, setSudokuLine] = createSignal(exportSudokuLine())
   function generateNewSudoku () {
     console.log('generateNewSudoku')
   }
@@ -68,7 +70,12 @@ export function SetterTab () {
         </details>
         <details>
           <summary>Manual edit</summary>
-          <textarea id="save" />
+          <textarea value={sudokuLine()} onInput={(e) => {
+            loadSudokuLine(e.target.value)
+            setSudokuLine(e.target.value)
+          }}
+              onBlur={() => setSudokuLine(exportSudokuLine()) }
+            />
         </details>
       </div>
   )

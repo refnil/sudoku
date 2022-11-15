@@ -37,6 +37,18 @@ export function PuzzleProvider (props) {
     },
     clearCell (cellId, value) {
       setState('grid', 'cells', cellId, null)
+    },
+    loadSudokuLine (line) {
+      for (let i = 0; i < 81; i++) {
+        let value = line[i]
+        if (value === undefined || value === '.') {
+          value = null
+        }
+        counter.setCell(i, value)
+      }
+    },
+    exportSudokuLine () {
+      return state.grid.cells.map(v => v === null ? '.' : v).join('')
     }
   }
 
