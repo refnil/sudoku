@@ -21,47 +21,73 @@ const CellComponent = (props) => {
   const mouseOver = createMemo(() => mouseMode().over(props.index()))
   const isSelected = createMemo(() => mouseMode().isSelected(props.index()))
 
-  const middle = createMemo(() => {
-    if (props.cell) {
-      return ['', true]
+  const puzzleCell = createMemo(() => usePuzzle().puzzle.grid.cells[props.index()])
+  const solverCell = createMemo(() => useSolverInfo().info[props.index()])
+  const computerCell = createMemo(() => useComputerInfo().info[props.index()])
+  const { show: showComputer } = useComputerInfo()
+
+  const main = createMemo(() => {
+    const p = puzzleCell()
+    if (p) {
+      return [p, null]
     }
-    const index = props.index()
-    const middle = useSolverInfo().info[index].middle
-    if (middle) {
-      return [middle, true]
+    const s = solverCell().main
+    if (s) {
+      return [s, 'human']
     }
-    return [useComputerInfo().info[index].middle, false]
+    const c = computerCell().main
+    if (showComputer() && c) {
+      return [c, 'computer']
+    }
+    return null
   })
+  const mainText = createMemo(() => main() && main()[0])
+  const mainClass = createMemo(() => main() && main()[1])
+
+  const middle = createMemo(() => {
+    if (mainText()) {
+      return null
+    }
+    const s = solverCell().middle
+    if (s.length > 0) {
+      return [s, 'human']
+    }
+    const c = computerCell().middle
+    if (showComputer() && c.length > 0) {
+      return [c, 'computer']
+    }
+    return null
+  })
+  const middleArray = createMemo(() => middle() && middle()[0])
+  const middleClass = createMemo(() => middle() && middle()[1])
 
   const corner = createMemo(() => {
-    if (props.cell) {
-      return ['', true]
+    if (mainText()) {
+      return null
     }
-    const index = props.index()
-    const corner = useSolverInfo().info[index].corner
-    if (corner) {
-      return [corner, true]
+    const s = solverCell().corner
+    if (s.length > 0) {
+      return [s, 'human']
     }
-    return [useComputerInfo().info[index].corner, false]
+    const c = computerCell().corner
+    if (showComputer() && c.length > 0) {
+      return [c, 'computer']
+    }
+    return null
   })
+  const cornerArray = createMemo(() => corner() && corner()[0])
+  const cornerClass = createMemo(() => corner() && corner()[1])
 
   return (
-        <li classList={{ selected: isSelected() }}
-            onMouseDown={mouseDown()}
-            onMouseOver={mouseOver()}
+        <li class={mainClass()} classList={{ selected: isSelected() }}
+            onMouseDown={(e) => mouseDown()(e)}
+            onMouseOver={(e) => mouseOver()(e)}
         >
-        <For each={corner()[0]}>{(digit, index) =>
-            <span class="corner-cell" classList={{
-              human: corner()[1],
-              computer: !corner()[1],
-              [cornerNames[index()]]: true
-            }}>{digit}</span>
+        <For each={cornerArray()}>{(digit, index) =>
+            <span class="corner-cell" classList={{ [cornerNames[index()]]: true, [cornerClass()]: true }}>{digit}</span>
         }</For>
-        <span class="middle-cell" classList={{
-          human: corner()[1],
-          computer: !corner()[1]
-        }} >{middle()[0]}</span>
-        {props.cell}
+        <span class="middle-cell" classList={{ [middleClass()]: true }} >{middleArray()}</span>
+        {mainText()}
         </li>
   )
 }

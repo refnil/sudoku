@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'solid-js'
+import { createContext, useContext, batch } from 'solid-js'
 import { createStore } from 'solid-js/store'
 
 const PuzzleContext = createContext()
@@ -39,13 +39,15 @@ export function PuzzleProvider (props) {
       setState('grid', 'cells', cellId, null)
     },
     loadSudokuLine (line) {
-      for (let i = 0; i < 81; i++) {
-        let value = line[i]
-        if (value === undefined || value === '.') {
-          value = null
+      batch(() => {
+        for (let i = 0; i < 81; i++) {
+          let value = line[i]
+          if (value === undefined || value === '.') {
+            value = null
+          }
+          counter.setCell(i, value)
         }
-        counter.setCell(i, value)
-      }
+      })
     },
     exportSudokuLine () {
       return state.grid.cells.map(v => v === null ? '.' : v).join('')

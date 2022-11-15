@@ -66,6 +66,7 @@ export class SelectionMode extends BaseMouseMode {
       }
       const n = new Set(s)
       n.add(index)
+      console.log(n)
       return n
     })
   }

@@ -1,17 +1,39 @@
-import { createSignal } from 'solid-js'
+import { createSignal, createEffect } from 'solid-js'
 import { usePuzzle } from '../providers/puzzle.js'
+import { useComputerInfo } from '../providers/grid-info.js'
+import { useComputer } from '../providers/computer.js'
+
+function SudokuLineEdit () {
+  const { loadSudokuLine, exportSudokuLine } = usePuzzle()
+  const [sudokuLine, setSudokuLine] = createSignal()
+  const [isFocus, setIsFocus] = createSignal(false)
+  createEffect(() => {
+    if (!isFocus()) {
+      setSudokuLine(exportSudokuLine())
+    }
+  })
+
+  return (
+    <textarea value={sudokuLine()} onInput={(e) => {
+      loadSudokuLine(e.target.value)
+      setSudokuLine(e.target.value)
+    }}
+    onFocus={() => setIsFocus(true) }
+    onBlur={() => setIsFocus(false) }
+    />
+  )
+}
 
 export function SetterTab () {
   const { puzzle, setName, setAuthor, setExtraRules, loadSudokuLine, exportSudokuLine } = usePuzzle()
-  const [sudokuLine, setSudokuLine] = createSignal(exportSudokuLine())
-  function generateNewSudoku () {
-    console.log('generateNewSudoku')
-  }
-  function clearComputer () {
-    console.log('clearComputer')
+  const { solveCount, generateNewSudoku, solve, solveResultMessage } = useComputer()
+  const { setShow, show } = useComputerInfo()
+
+  function toggleComputerSolve () {
+    setShow(p => !p)
   }
   function resetGrid () {
-    console.log('resetGrid')
+    loadSudokuLine('')
   }
   const toggleSimpleVariant = (variantName) => () => {
     console.log('toggle', variantName)
@@ -39,11 +61,11 @@ export function SetterTab () {
         <h3>Computational operation</h3>
         <p>
         <button onClick={generateNewSudoku}>Generate random sudoku</button>
-        <button id='solve'>Solve</button>
-        <button onClick={clearComputer}>Clear computer hint</button>
+        <button onClick={solve}>Solve</button>
+        <button onClick={toggleComputerSolve}>{show() ? 'Hide' : 'Show'} computer hint</button>
         </p>
-        <p>Solution count: <span id='count' /></p>
-        <p id="solve_result_message" class="hidden">Solve result message: <span id='solve_result_message_text' /></p>
+        <p>Solution count: {solveCount()}</p>
+        <p classList={{ hidden: !solveResultMessage() }}>Solve result message: {solveResultMessage()}</p>
         <h3>Constraints</h3>
         <p>
         <button onClick={toggleSimpleVariant('diag_pos')}>Diagonal +</button>
@@ -70,12 +92,7 @@ export function SetterTab () {
         </details>
         <details>
           <summary>Manual edit</summary>
-          <textarea value={sudokuLine()} onInput={(e) => {
-            loadSudokuLine(e.target.value)
-            setSudokuLine(e.target.value)
-          }}
-              onBlur={() => setSudokuLine(exportSudokuLine()) }
-            />
+          <SudokuLineEdit/>
         </details>
       </div>
   )

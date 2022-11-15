@@ -46,6 +46,9 @@ import('../node_modules/sudoku/sudoku.js').then((sudoku) => {
       case 'solve_common':
         solve_common(message.data[1], message.data[2])
         break
+      case 'generate':
+        generate()
+        break
       default:
         console.error('Could not handle message: ', message)
     }
@@ -60,6 +63,10 @@ import('../node_modules/sudoku/sudoku.js').then((sudoku) => {
 
   function solve_common (data, limit) {
     send_result('solve_common', sudoku.solve_common_extra(data, limit))
+  }
+
+  function generate () {
+    send_result('generate', sudoku.generate())
   }
 
   function send_result (name, return_data) {

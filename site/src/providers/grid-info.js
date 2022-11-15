@@ -18,16 +18,22 @@ function makeValue () {
     cells.push({
       middle: [],
       corner: [],
-      center: null
+      main: null
     })
   }
   const [state, setState] = createStore(cells)
+  const [show, setShow] = createSignal(true)
   const counter =
   {
     info: state,
     setInfo: setState,
+    show,
+    setShow,
+    resetCell (index) {
+      setState(index, { middle: [], corner: [], main: null })
+    },
     setCell (index, value) {
-      setState(index, { center: value })
+      setState(index, { main: value })
     },
     toggleMiddle (index, value) {
       setState(index, (p) => {
@@ -42,6 +48,9 @@ function makeValue () {
     },
     clearMiddle (index, value) {
       setState(index, { middle: [] })
+    },
+    setMiddle (index, value) {
+      setState(index, { middle: value.sort() })
     },
     toggleCorner (index, value) {
       setState(index, (p) => {

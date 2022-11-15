@@ -6,6 +6,7 @@ import { KeyboardModeProvider } from './providers/keyboard-mode.js'
 import { MouseModeProvider } from './providers/mouse-mode.js'
 import { PuzzleProvider, usePuzzle } from './providers/puzzle.js'
 import { InfoProvider } from './providers/grid-info.js'
+import { ComputerProvider } from './providers/computer.js'
 
 import { SetterTab } from './tabs/setter.js'
 import { SolverTab } from './tabs/solver.js'
@@ -26,6 +27,7 @@ const App = () => {
   return (
     <PuzzleProvider>
     <InfoProvider>
+    <ComputerProvider>
     <MouseModeProvider>
     <KeyboardModeProvider>
     <Header/>
@@ -36,6 +38,7 @@ const App = () => {
     </div>
     </KeyboardModeProvider>
     </MouseModeProvider>
+    </ComputerProvider>
     </InfoProvider>
     </PuzzleProvider>
   )
