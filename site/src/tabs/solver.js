@@ -1,15 +1,24 @@
-import { createMemo } from 'solid-js'
+import { createMemo, createSelector } from 'solid-js'
 import { usePuzzle } from '../providers/puzzle.js'
 import { useKeyboardMode } from '../providers/keyboard-mode.js'
+
+function ModeButton (props) {
+  const [keyboardMode, setKeyboardMode, KeyboardModes] = useKeyboardMode()
+  const isCurrent = createSelector(keyboardMode)
+  return (
+    <button
+      onClick={() => setKeyboardMode((p) => props.mode === p && props.fallback ? KeyboardModes.FullCell : props.mode)}
+      classList={{ 'toggle-on': isCurrent(props.mode), 'toggle-off': !isCurrent(props.mode) }}
+      >
+      {props.children}
+    </button>
+  )
+}
 
 export const SolverTab = () => {
   const { puzzle } = usePuzzle()
   const [keyboardMode, setKeyboardMode, KeyboardModes] = useKeyboardMode()
   const Keyboard = createMemo(() => keyboardMode().render)
-
-  const switchTo = (mode) => () => {
-    setKeyboardMode(mode)
-  }
 
   return (
     <div class="sudoku-side column">
@@ -22,10 +31,10 @@ export const SolverTab = () => {
       </div>
       <div class="column">
         <button id='app_mode_button'>Mode: <span id='app_mode'>setter</span></button>
-        <button onClick={switchTo(KeyboardModes.FullCell)}>Number</button>
-        <button onClick={switchTo(KeyboardModes.CornerCell)}>Corner</button>
-        <button onClick={switchTo(KeyboardModes.MiddleCell)}>Center</button>
-        <button onClick={switchTo(KeyboardModes.ColorCell)}>Color</button>
+        <ModeButton mode={KeyboardModes.FullCell}>Number</ModeButton>
+        <ModeButton mode={KeyboardModes.CornerCell} fallback>Corner</ModeButton>
+        <ModeButton mode={KeyboardModes.MiddleCell} fallback>Center</ModeButton>
+        <ModeButton mode={KeyboardModes.ColorCell} fallback>Color</ModeButton>
         <button id='clear'>Clear progress</button>
       </div>
       </div>
