@@ -5,25 +5,12 @@ import { render } from 'solid-js/web'
 import { KeyboardModeProvider } from './providers/keyboard-mode.js'
 import { MouseModeProvider } from './providers/mouse-mode.js'
 import { PuzzleProvider, usePuzzle } from './providers/puzzle.js'
+import { InfoProvider } from './providers/grid-info.js'
 
 import { SetterTab } from './tabs/setter.js'
 import { SolverTab } from './tabs/solver.js'
 
 import { GridComponent } from './grid.js'
-
-/*
-const corner_names = [
-  'top-left',
-  'top-middle',
-  'top-right',
-  'middle-left',
-  'middle-right',
-  'bottom-left',
-  'bottom-middle-1',
-  'bottom-middle-2',
-  'bottom-right'
-]
-*/
 
 function Header () {
   const { puzzle } = usePuzzle()
@@ -38,6 +25,7 @@ function Header () {
 const App = () => {
   return (
     <PuzzleProvider>
+    <InfoProvider>
     <MouseModeProvider>
     <KeyboardModeProvider>
     <Header/>
@@ -48,6 +36,7 @@ const App = () => {
     </div>
     </KeyboardModeProvider>
     </MouseModeProvider>
+    </InfoProvider>
     </PuzzleProvider>
   )
 }

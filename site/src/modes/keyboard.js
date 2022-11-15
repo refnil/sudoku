@@ -1,10 +1,11 @@
 import { BaseMode } from './base.js'
 
 class BaseKeyboardMode extends BaseMode {
-    constructor(mouseMode) {
-        super()
-        this.mouseMode = mouseMode
-    }
+  constructor (mouseMode) {
+    super()
+    this.mouseMode = mouseMode
+  }
+
   render () {
     this.log('render')
   }
@@ -22,16 +23,38 @@ class BaseKeyboardMode extends BaseMode {
   }
 
   handle_key (key) {
-    this.log('handle_key', key)
+    key = parseInt(key) || key
+    if (Number.isInteger(key) && key >= 1 && key <= 9) {
+      this.handle_number(key)
+    }
+  }
+
+  handle_number (key) {
+    this.log('hanlde_number', key)
   }
 }
 
-export class FullCellKeyboard extends BaseKeyboardMode {
-  constructor (mouseMode, setCell) {
+class ToggleCellKeyboard extends BaseKeyboardMode {
+  constructor (mouseMode, toggle, clear) {
     super(mouseMode)
-    this.setCell = setCell
+    this.toggle = toggle
+    this.clear = clear
   }
 
+  handle_delete () {
+    for (const cellId of this.mouseMode().selected()) {
+      this.clear(cellId)
+    }
+  }
+
+  handle_number (key) {
+    for (const cellId of this.mouseMode().selected()) {
+      this.toggle(cellId, key)
+    }
+  }
+}
+
+export class FullCellKeyboard extends ToggleCellKeyboard {
   render () {
     return (
       <div id="number" class="keyboard">
@@ -48,27 +71,9 @@ export class FullCellKeyboard extends BaseKeyboardMode {
       </div>
     )
   }
-
-  handle_delete () {
-    this.setAll(null)
-  }
-
-  handle_key (key) {
-    key = parseInt(key) || key
-    if (Number.isInteger(key) && key >= 1 && key <= 9) {
-      this.setAll(key)
-    }
-  }
-
-  setAll (value) {
-      console.log(this.mouseMode);
-    for (const cellId of this.mouseMode().selected()) {
-      this.setCell(cellId, value)
-    }
-  }
 }
 
-export class MiddleCellKeyboard extends BaseKeyboardMode {
+export class MiddleCellKeyboard extends ToggleCellKeyboard {
   render () {
     return (
       <div id="middle-number" class="keyboard middle-cell">
@@ -87,7 +92,7 @@ export class MiddleCellKeyboard extends BaseKeyboardMode {
   }
 }
 
-export class CornerCellKeyboard extends BaseKeyboardMode {
+export class CornerCellKeyboard extends ToggleCellKeyboard {
   render () {
     return (
       <div id="corner-number" class="keyboard">

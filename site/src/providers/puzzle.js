@@ -1,4 +1,4 @@
-import { createSignal, createMemo, createContext, useContext, createSelector, onMount, onCleanup } from 'solid-js'
+import { createContext, useContext } from 'solid-js'
 import { createStore } from 'solid-js/store'
 
 const PuzzleContext = createContext()
@@ -29,8 +29,14 @@ export function PuzzleProvider (props) {
     setExtraRules (rules) {
       setState({ extraRules: rules })
     },
-    setCell (cell_id, value) {
-      setState('grid', 'cells', cell_id, value)
+    setCell (cellId, value) {
+      setState('grid', 'cells', cellId, value)
+    },
+    toggleCell (cellId, value) {
+      setState('grid', 'cells', cellId, (o) => o === value ? null : value)
+    },
+    clearCell (cellId, value) {
+      setState('grid', 'cells', cellId, null)
     }
   }
 

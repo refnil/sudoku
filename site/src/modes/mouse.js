@@ -45,10 +45,10 @@ class BaseMouseMode extends BaseMode {
     this.log('isSelected', args)
     return false
   }
-  
-  selected() {
-      this.log('selected');
-      return new Set();
+
+  selected () {
+    this.log('selected')
+    return new Set()
   }
 }
 
@@ -83,5 +83,4 @@ export class SelectionMode extends BaseMouseMode {
   selected () {
     return this.selectedSetSignal[0]()
   }
-
 }
