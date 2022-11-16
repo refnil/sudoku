@@ -35,10 +35,9 @@ function Render (props) {
   )
 }
 
-function Rules(props)
-{
-    const { isRule } = usePuzzle()
-    return <>{[...new Set(variants.filter(v=>isRule(v.key)).map(v=>v.rule))].join(" ")}</>
+function Rules (props) {
+  const { isRule } = usePuzzle()
+  return <>{[...new Set(variants.filter(v => isRule(v.key)).map(v => v.rule))].join(' ')}</>
 }
 
 export default { Render, Settings, Rules }

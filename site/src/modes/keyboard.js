@@ -100,7 +100,7 @@ export class CornerCellKeyboard extends ToggleCellKeyboard {
   }
 }
 
-export class ColorCellKeyboard extends BaseKeyboardMode {
+export class ColorCellKeyboard extends ToggleCellKeyboard {
   get keyboardClasses () {
     return super.keyboardClasses + ' color-keyboard'
   }

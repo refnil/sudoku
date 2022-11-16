@@ -31,7 +31,7 @@ const CellComponent = (props) => {
   const main = createMemo(() => {
     const p = puzzleCell()
     if (p) {
-      return [p, null]
+      return [p, undefined]
     }
     const s = solverCell().main
     if (s) {
@@ -41,7 +41,7 @@ const CellComponent = (props) => {
     if (showComputer() && c) {
       return [c, 'computer']
     }
-    return null
+    return undefined
   })
   const mainText = createMemo(() => main() && main()[0])
   const mainClass = createMemo(() => main() && main()[1])
@@ -80,10 +80,23 @@ const CellComponent = (props) => {
   const cornerArray = createMemo(() => corner() && corner()[0])
   const cornerClass = createMemo(() => corner() && corner()[1])
 
+  const colorStyleProps = createMemo(() => {
+    const colors = solverCell().color
+    if (colors.length === 0) {
+      return {}
+    } else if (colors.length === 1) {
+      return { 'background-color': `var(--solve-color-${colors[0]})` }
+    }
+    const step = 360 / colors.length
+    const conicConf = colors.map((c, i) => `var(--solve-color-${colors[i]}) ${i * step}deg ${(i + 1) * step}deg`).join(',')
+    return { background: `conic-gradient(${conicConf})` }
+  })
+
   return (
         <li classList={{ selected: isSelected(), [mainClass()]: true }}
             onMouseDown={(e) => mouseDown()(e)}
             onMouseOver={(e) => mouseOver()(e)}
+            style={colorStyleProps()}
         >
         <For each={cornerArray()}>{(digit, index) =>
             <span class="corner-cell" classList={{ [cornerNames[index()]]: true, [cornerClass()]: true }}>{digit}</span>

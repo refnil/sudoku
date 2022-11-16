@@ -12,14 +12,19 @@ export function useComputerInfo () {
   return useContext(ComputerContext)
 }
 
+function emptyCell () {
+  return ({
+    middle: [],
+    corner: [],
+    main: null,
+    color: []
+  })
+}
+
 function makeValue () {
   const cells = []
   for (let i = 0; i < 81; i++) {
-    cells.push({
-      middle: [],
-      corner: [],
-      main: null
-    })
+    cells.push(emptyCell())
   }
   const [state, setState] = createStore(cells)
   const [show, setShow] = createSignal(true)
@@ -37,7 +42,7 @@ function makeValue () {
       })
     },
     resetCell (index) {
-      setState(index, { middle: [], corner: [], main: null })
+      setState(index, emptyCell)
     },
     setCell (index, value) {
       setState(index, 'main', value)
@@ -78,6 +83,20 @@ function makeValue () {
     },
     clearCorner (index, value) {
       setState(index, { corner: [] })
+    },
+    toggleColor (index, value) {
+      setState(index, (p) => {
+        const s = new Set(p.color)
+        if (s.has(value)) {
+          s.delete(value)
+        } else {
+          s.add(value)
+        }
+        return { color: [...s].sort() }
+      })
+    },
+    clearColor (index, value) {
+      setState(index, { color: [] })
     }
   }
   return counter

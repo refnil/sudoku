@@ -12,13 +12,13 @@ export function useKeyboardMode () {
 export function KeyboardModeProvider (props) {
   const { toggleCell, clearCell, setRule } = usePuzzle()
   const mouseMode = useMouseMode()[0]
-  const { toggleMiddle, clearMiddle, toggleCorner, clearCorner, toggleCell: toggleSolverCell, clearCell: clearSolverCell } = useSolverInfo()
+  const { toggleMiddle, clearMiddle, toggleCorner, clearCorner, toggleCell: toggleSolverCell, clearCell: clearSolverCell, toggleColor, clearColor } = useSolverInfo()
   const KeyboardMode = {
     FullCell: new ToggleCellKeyboard(mouseMode, toggleCell, clearCell),
     SolverFullCell: new ToggleCellKeyboard(mouseMode, toggleSolverCell, clearSolverCell),
     MiddleCell: new MiddleCellKeyboard(mouseMode, toggleMiddle, clearMiddle),
     CornerCell: new CornerCellKeyboard(mouseMode, toggleCorner, clearCorner),
-    ColorCell: new ColorCellKeyboard(mouseMode),
+    ColorCell: new ColorCellKeyboard(mouseMode, toggleColor, clearColor),
     Difference: new SingleExtraKeyboard(setRule, 'diff', 2)
   }
   const [state, setState] = createSignal(props.solveOnly ? KeyboardMode.SolverFullCell : KeyboardMode.FullCell)

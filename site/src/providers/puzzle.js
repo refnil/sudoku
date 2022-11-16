@@ -66,7 +66,7 @@ export function PuzzleProvider (props) {
           let found = false
           for (const [key, variant] of variantsMap) {
             if (part.startsWith(key)) {
-              counter.setRule(key, variant.load(part.replace(key, "")))
+              counter.setRule(key, variant.load(part.replace(key, '')))
               found = true
               break
             }
