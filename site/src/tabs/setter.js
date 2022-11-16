@@ -62,7 +62,7 @@ export function SetterTab () {
         <h3>Sharing</h3>
         <Show when={url().indexOf('?') >= 0} fallback={<p>No link when grid is empty</p>}>
         <p><a href={url()}>Setting url</a></p>
-        <p><a href={url()+'&solve'}>Solving url</a></p>
+        <p><a href={url() + '&solve'}>Solving url</a></p>
         <Show when={sudokuLine().indexOf(';') < 0}>
         <p><a href={`https://www.sudokuwiki.org/sudoku.htm?db=${sudokuLine()}`}>Export to sudokuwiki</a></p>
         </Show>

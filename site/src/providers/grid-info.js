@@ -1,4 +1,4 @@
-import { createSignal, createMemo, createContext, useContext, createSelector, onMount, onCleanup } from 'solid-js'
+import { batch, createSignal, createMemo, createContext, useContext, createSelector, onMount, onCleanup } from 'solid-js'
 import { createStore } from 'solid-js/store'
 
 const SolverContext = createContext()
@@ -29,6 +29,13 @@ function makeValue () {
     setInfo: setState,
     show,
     setShow,
+    resetAllCell () {
+      batch(() => {
+        for (let i = 0; i < 81; i++) {
+          counter.resetCell(i)
+        }
+      })
+    },
     resetCell (index) {
       setState(index, { middle: [], corner: [], main: null })
     },
@@ -38,7 +45,7 @@ function makeValue () {
     clearCell (index) {
       counter.setCell(index, null)
     },
-    toggleCell(index, value) {
+    toggleCell (index, value) {
       counter.setCell(index, (p) => p === value ? null : value)
     },
     toggleMiddle (index, value) {

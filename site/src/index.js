@@ -1,6 +1,6 @@
 import './index.css'
 
-import { createEffect, createSignal } from 'solid-js'
+import { createEffect, createSignal, Show } from 'solid-js'
 import { render } from 'solid-js/web'
 
 import { KeyboardModeProvider } from './providers/keyboard-mode.js'
@@ -29,14 +29,14 @@ function URLManager (props) {
   createEffect(() => {
     let u = url()
     if (u.indexOf('?') >= 0 && props.solveOnly) {
-        u += "&solve"
+      u += '&solve'
     }
     window.history.replaceState({}, '', u)
   })
 }
 
 const App = () => {
-  const solveOnly = new URLSearchParams(window.location.search).get("solve") !== null
+  const solveOnly = new URLSearchParams(window.location.search).get('solve') !== null
   return (
     <PuzzleProvider>
     <InfoProvider>

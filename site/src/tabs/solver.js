@@ -1,7 +1,8 @@
-import { createMemo, createSelector } from 'solid-js'
+import { createMemo, createSelector, Show } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
 import { usePuzzle } from '../providers/puzzle.js'
 import { useKeyboardMode } from '../providers/keyboard-mode.js'
+import { useSolverInfo } from '../providers/grid-info.js'
 
 function ModeButton (props) {
   const [keyboardMode, setKeyboardMode, KeyboardModes] = useKeyboardMode()
@@ -19,6 +20,12 @@ function ModeButton (props) {
 export const SolverTab = (props) => {
   const { puzzle } = usePuzzle()
   const [keyboardMode, setKeyboardMode, KeyboardModes] = useKeyboardMode()
+  const { resetAllCell } = useSolverInfo()
+  function clear () {
+    if (confirm('Do you want to delete all progress?')) {
+      resetAllCell()
+    }
+  }
 
   return (
     <div class="sudoku-side column">
@@ -30,11 +37,11 @@ export const SolverTab = (props) => {
         <Show when={!props.solveOnly}>
           <ModeButton mode={KeyboardModes.FullCell}>Number setter</ModeButton>
         </Show>
-        <ModeButton mode={KeyboardModes.SolverFullCell}>Number{!props.solveOnly && " solver"}</ModeButton>
+        <ModeButton mode={KeyboardModes.SolverFullCell}>Number{!props.solveOnly && ' solver'}</ModeButton>
         <ModeButton mode={KeyboardModes.CornerCell} fallback>Corner</ModeButton>
         <ModeButton mode={KeyboardModes.MiddleCell} fallback>Center</ModeButton>
         <ModeButton mode={KeyboardModes.ColorCell} fallback>Color</ModeButton>
-        <button id='clear'>Clear progress</button>
+        <button onClick={clear}>Clear progress</button>
       </div>
       </div>
       <p>{puzzle.extraRules}</p>
