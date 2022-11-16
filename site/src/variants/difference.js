@@ -6,7 +6,13 @@ import { useKeyboardMode } from '../providers/keyboard-mode.js'
 
 export const key = 'diff'
 export const rule = 'A number in a green circle between two cells is the difference of these two cells.'
-export function load (ruleString) {
+export function load (string) {
+    const value = string.replace(key, '').split('|').filter(p => p)
+    return (old) => {
+        const next = old ? [...old] : []
+        next.push(value)
+        return next
+    }
 }
 
 export function extract (rule) {

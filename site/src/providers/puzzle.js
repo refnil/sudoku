@@ -66,7 +66,7 @@ export function PuzzleProvider (props) {
           let found = false
           for (const [key, variant] of variantsMap) {
             if (part.startsWith(key)) {
-              counter.setRule(key, variant.load(part))
+              counter.setRule(key, variant.load(part.replace(key, "")))
               found = true
               break
             }
@@ -76,7 +76,7 @@ export function PuzzleProvider (props) {
             // strip clue prefix for compatibility with v1
             line = line.replace('clue', '')
             for (let i = 0; i < 81; i++) {
-              let value = line[i]
+              let value = part[i]
               if (value === undefined || value === '.') {
                 value = null
               }

@@ -6,6 +6,12 @@ import { useMouseMode } from '../providers/mouse-mode.js'
 export const key = 'thermo'
 export const rule = 'The number are growing along a thermometer from the bubble to the tip.'
 export function load (string) {
+    const value = string.replace(key, '').split('|').filter(p => p)
+    return (old) => {
+        const next = old ? [...old] : []
+        next.push(value)
+        return next
+    }
 }
 
 export function extract (rule) {
