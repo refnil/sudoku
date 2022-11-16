@@ -1,4 +1,5 @@
 import { createMemo, createSelector } from 'solid-js'
+import { Dynamic } from 'solid-js/web'
 import { usePuzzle } from '../providers/puzzle.js'
 import { useKeyboardMode } from '../providers/keyboard-mode.js'
 
@@ -18,16 +19,12 @@ function ModeButton (props) {
 export const SolverTab = () => {
   const { puzzle } = usePuzzle()
   const [keyboardMode, setKeyboardMode, KeyboardModes] = useKeyboardMode()
-  const Keyboard = createMemo(() => keyboardMode().render)
 
   return (
     <div class="sudoku-side column">
       <div class="row">
       <div class="keyboard-container">
-        {() => {
-          const Base = Keyboard()
-          return <Base/>
-        }}
+        <Dynamic component={keyboardMode().render()}/>
       </div>
       <div class="column">
         <button id='app_mode_button'>Mode: <span id='app_mode'>setter</span></button>

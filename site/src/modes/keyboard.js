@@ -2,20 +2,26 @@ import { BaseMode } from './base.js'
 
 class BaseKeyboardMode extends BaseMode {
   render () {
-    return (
-      <div class="keyboard">
-        <button>1</button>
-        <button>2</button>
-        <button>3</button>
-        <button>4</button>
-        <button>5</button>
-        <button>6</button>
-        <button>7</button>
-        <button>8</button>
-        <button>9</button>
-        <button class="delete">Delete</button>
+    const classes = this.keyboardClasses
+    const click = (key) => (e) => this.handle_event(key)
+    return () => (
+      <div class={classes}>
+        <button onClick={click(1)}>1</button>
+        <button onClick={click(2)}>2</button>
+        <button onClick={click(3)}>3</button>
+        <button onClick={click(4)}>4</button>
+        <button onClick={click(5)}>5</button>
+        <button onClick={click(6)}>6</button>
+        <button onClick={click(7)}>7</button>
+        <button onClick={click(8)}>8</button>
+        <button onClick={click(9)}>9</button>
+        <button class="delete" onClick={click('Delete')}>Delete</button>
       </div>
     )
+  }
+
+  get keyboardClasses () {
+    return 'keyboard'
   }
 
   handle_event (key) {
@@ -64,59 +70,39 @@ export class ToggleCellKeyboard extends BaseKeyboardMode {
 }
 
 export class MiddleCellKeyboard extends ToggleCellKeyboard {
-  render () {
-    return (
-      <div class="keyboard middle-cell">
-        <button>1</button>
-        <button>2</button>
-        <button>3</button>
-        <button>4</button>
-        <button>5</button>
-        <button>6</button>
-        <button>7</button>
-        <button>8</button>
-        <button>9</button>
-        <button class="delete">Delete</button>
-      </div>
-    )
+  get keyboardClasses () {
+    return super.keyboardClasses + ' middle-cell'
   }
 }
 
 export class CornerCellKeyboard extends ToggleCellKeyboard {
+  get keyboardClasses () {
+    return super.keyboardClasses + ' corner-keyboard'
+  }
+
   render () {
-    return (
-      <div class="keyboard corner-keyboard">
-        <button><span class="top-left">1</span></button>
-        <button><span class="top-middle">2</span></button>
-        <button><span class="top-right">3</span></button>
-        <button><span class="middle-left">4</span></button>
-        <button>5</button>
-        <button><span class="middle-right">6</span></button>
-        <button><span class="bottom-left">7</span></button>
-        <button><span class="bottom-middle">8</span></button>
-        <button><span class="bottom-right">9</span></button>
-        <button class="delete">Delete</button>
+    const classes = this.keyboardClasses
+    const click = (key) => (e) => this.handle_event(key)
+    return () => (
+      <div class={classes}>
+        <button onClick={click(1)}><span class="top-left">1</span></button>
+        <button onClick={click(2)}><span class="top-middle">2</span></button>
+        <button onClick={click(3)}><span class="top-right">3</span></button>
+        <button onClick={click(4)}><span class="middle-left">4</span></button>
+        <button onClick={click(5)}>5</button>
+        <button onClick={click(6)}><span class="middle-right">6</span></button>
+        <button onClick={click(7)}><span class="bottom-left">7</span></button>
+        <button onClick={click(8)}><span class="bottom-middle">8</span></button>
+        <button onClick={click(9)}><span class="bottom-right">9</span></button>
+        <button onClick={click('Delete')} class="delete">Delete</button>
       </div>
     )
   }
 }
 
 export class ColorCellKeyboard extends BaseKeyboardMode {
-  render () {
-    return (
-      <div class="keyboard color-keyboard">
-        <button />
-        <button />
-        <button />
-        <button />
-        <button />
-        <button />
-        <button />
-        <button />
-        <button />
-        <button class="delete">Delete</button>
-      </div>
-    )
+  get keyboardClasses () {
+    return super.keyboardClasses + ' color-keyboard'
   }
 }
 

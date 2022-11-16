@@ -314,6 +314,10 @@ button {
   position:absolute;
 }
 
+.color-keyboard button:not(.delete) {
+    text-indent:-200vw;
+}
+
 .color-keyboard button:nth-child(1) {
   background-color: var(--solve-color-1);
 }
