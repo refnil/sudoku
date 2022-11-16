@@ -1,5 +1,6 @@
-import { createContext, useContext, batch } from 'solid-js'
+import { createContext, useContext, batch, createEffect } from 'solid-js'
 import { createStore } from 'solid-js/store'
+import { variantsMap } from '../variants.js'
 
 const PuzzleContext = createContext()
 
@@ -50,7 +51,20 @@ export function PuzzleProvider (props) {
       })
     },
     exportSudokuLine () {
-      return state.grid.cells.map(v => v === null ? '.' : v).join('')
+      let sudokuLine = state.grid.cells.map(v => v === null ? '.' : v).join('')
+      for (const [key, rule] of Object.entries(state.grid.rules)) {
+        sudokuLine += ';' + variantsMap.get(key).extract(rule)
+      }
+      return sudokuLine
+    },
+    isRule (name) {
+      return !!counter.getRule(name)
+    },
+    getRule (name) {
+      return state.grid.rules[name]
+    },
+    setRule (name, value) {
+      setState('grid', 'rules', name, value)
     }
   }
 

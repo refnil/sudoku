@@ -2,6 +2,7 @@ import { createSignal, createEffect } from 'solid-js'
 import { usePuzzle } from '../providers/puzzle.js'
 import { useComputerInfo } from '../providers/grid-info.js'
 import { useComputer } from '../providers/computer.js'
+import Variants from '../variants.js'
 
 function SudokuLineEdit () {
   const { loadSudokuLine, exportSudokuLine } = usePuzzle()
@@ -25,7 +26,7 @@ function SudokuLineEdit () {
 }
 
 export function SetterTab () {
-  const { puzzle, setName, setAuthor, setExtraRules, loadSudokuLine, exportSudokuLine } = usePuzzle()
+  const { puzzle, setName, setAuthor, setExtraRules, loadSudokuLine } = usePuzzle()
   const { solveCount, generateNewSudoku, solve, solveResultMessage } = useComputer()
   const { setShow, show } = useComputerInfo()
 
@@ -34,18 +35,6 @@ export function SetterTab () {
   }
   function resetGrid () {
     loadSudokuLine('')
-  }
-  const toggleSimpleVariant = (variantName) => () => {
-    console.log('toggle', variantName)
-  }
-  function thermoEdit () {
-    console.log('thermo edit')
-  }
-  function thermoDelete () {
-    console.log('thermo delete')
-  }
-  function difference () {
-    console.log('difference')
   }
   return (
       <div class="sudoku-side">
@@ -68,13 +57,7 @@ export function SetterTab () {
         <p classList={{ hidden: !solveResultMessage() }}>Solve result message: {solveResultMessage()}</p>
         <h3>Constraints</h3>
         <p>
-        <button onClick={toggleSimpleVariant('diag_pos')}>Diagonal +</button>
-        <button onClick={toggleSimpleVariant('diag_neg')}>Diagonal -</button>
-        <button onClick={toggleSimpleVariant('king')}>King move</button>
-        <span class="merge_button">
-          <button onClick={thermoEdit}>Thermo</button><button onClick={thermoDelete} class="toggle-no-addon">&#x1F5D1;</button>
-        </span>
-        <button onClick={difference}>Difference</button>
+            <Variants.Settings/>
         </p>
         <h3>Sharing</h3>
         <p><a>Setting url</a></p>

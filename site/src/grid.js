@@ -2,6 +2,7 @@ import { For, createMemo } from 'solid-js'
 import { usePuzzle } from './providers/puzzle.js'
 import { useSolverInfo, useComputerInfo } from './providers/grid-info.js'
 import { useMouseMode } from './providers/mouse-mode.js'
+import Variants from './variants.js'
 
 const cornerNames = [
   'top-left',
@@ -97,11 +98,15 @@ export const GridComponent = () => {
 
   return (
         <div><div id="sudoku" class="sudoku">
+
+        <Variants.Render/>
         <ul>
         <For each={puzzle.grid.cells}>
           {(cell, index) => <CellComponent cell={cell} index={index}/>}
         </For>
         </ul>
-        </div></div>
+        </div>
+
+      </div>
   )
 }
