@@ -29,6 +29,12 @@ class BaseMouseMode extends BaseMode {
     }
   }
 
+  side (index) {
+    return (event, firstCell, secondCell) => {
+      this.sideClick(firstCell, secondCell)
+    }
+  }
+
   add (...args) {
     this.log('add', args)
   }
@@ -39,6 +45,10 @@ class BaseMouseMode extends BaseMode {
 
   finish_click (...args) {
     this.log('finish_click', args)
+  }
+
+  sideClick (firstCell, secondCell) {
+    this.log('sideClick', firstCell, secondCell)
   }
 
   isSelected (...args) {
@@ -86,14 +96,14 @@ export class SelectionMode extends BaseMouseMode {
 }
 
 export class TwoLineRuleMode extends BaseMouseMode {
-  constructor (mouseDown, setRule, rulename) {
+  constructor (mouseDown, setRule, ruleName) {
     super(mouseDown)
     this.setRule = setRule
-    this.rulename = rulename
+    this.ruleName = ruleName
   }
 
   set (...val) {
-    this.setRule(this.rulename, ...val)
+    this.setRule(this.ruleName, ...val)
   }
 
   add (index) {
@@ -130,15 +140,15 @@ export class TwoLineRuleMode extends BaseMouseMode {
 }
 
 export class RemoveFromTwoLine extends BaseMouseMode {
-  constructor (mouseDown, setRule, rulename, onEmpty) {
+  constructor (mouseDown, setRule, ruleName, onEmpty) {
     super(mouseDown)
     this.setRule = setRule
-    this.rulename = rulename
+    this.ruleName = ruleName
     this.onEmpty = onEmpty
   }
 
   set (...val) {
-    this.setRule(this.rulename, ...val)
+    this.setRule(this.ruleName, ...val)
   }
 
   clear (index, shift) {
@@ -151,10 +161,44 @@ export class RemoveFromTwoLine extends BaseMouseMode {
           changed = true
         }
       }
-      next = changed ? next : arr
       next = next.length !== 0 ? next : undefined
+      next = changed ? next : arr
       if (!next) {
         this.onEmpty()
+      }
+      return next
+    })
+  }
+}
+
+export class ToggleSide extends BaseMouseMode {
+  constructor (mouseDown, setRule, ruleName, fullLength) {
+    super(mouseDown)
+    this.setRule = setRule
+    this.ruleName = ruleName
+    this.fullLength = fullLength
+  }
+
+  set (...val) {
+    this.setRule(this.ruleName, ...val)
+  }
+
+  sideClick (firstCell, secondCell) {
+    this.set((arr) => {
+      const next = arr ? [...arr] : []
+      const indexCell = next.findIndex(e => e[0] === firstCell && e[1] === secondCell)
+      if (indexCell >= 0) {
+        next.splice(indexCell, 1)
+        if (next.length === 0) {
+          return undefined
+        }
+        return next
+      }
+
+      if (next[0] && next[0].length !== this.fullLength) {
+        next[0] = [firstCell, secondCell]
+      } else {
+        next.unshift([firstCell, secondCell])
       }
       return next
     })

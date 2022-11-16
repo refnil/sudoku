@@ -79,9 +79,6 @@ function Thermo (props) {
 }
 export function Render (props) {
   const { getRule } = usePuzzle()
-  createEffect(() => {
-    console.log('thermo', getRule(key))
-  })
   return (
     <For each={getRule(key)}>{(item) => <Thermo thermo={item}/>}</For>
   )

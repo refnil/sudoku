@@ -31,6 +31,5 @@ export function makeSimpleVariant (key, settingLabel, RenderComponent) {
     Settings (props) {
       return <SimpleVariantButton rule={key}>{settingLabel}</SimpleVariantButton>
     }
-
   }
 }

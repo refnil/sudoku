@@ -1,17 +1,25 @@
 import { BaseMode } from './base.js'
 
 class BaseKeyboardMode extends BaseMode {
-  constructor (mouseMode) {
-    super()
-    this.mouseMode = mouseMode
-  }
-
   render () {
-    this.log('render')
+    return (
+      <div class="keyboard">
+        <button>1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>4</button>
+        <button>5</button>
+        <button>6</button>
+        <button>7</button>
+        <button>8</button>
+        <button>9</button>
+        <button class="delete">Delete</button>
+      </div>
+    )
   }
 
   handle_event (key) {
-    if (key == 'Delete' || key == 'Backspace') {
+    if (key === 'Delete' || key === 'Backspace') {
       this.handle_delete()
     } else {
       this.handle_key(key)
@@ -34,9 +42,10 @@ class BaseKeyboardMode extends BaseMode {
   }
 }
 
-class ToggleCellKeyboard extends BaseKeyboardMode {
+export class ToggleCellKeyboard extends BaseKeyboardMode {
   constructor (mouseMode, toggle, clear) {
-    super(mouseMode)
+    super()
+    this.mouseMode = mouseMode
     this.toggle = toggle
     this.clear = clear
   }
@@ -54,29 +63,10 @@ class ToggleCellKeyboard extends BaseKeyboardMode {
   }
 }
 
-export class FullCellKeyboard extends ToggleCellKeyboard {
-  render () {
-    return (
-      <div id="number" class="keyboard">
-        <button>1</button>
-        <button>2</button>
-        <button>3</button>
-        <button>4</button>
-        <button>5</button>
-        <button>6</button>
-        <button>7</button>
-        <button>8</button>
-        <button>9</button>
-        <button class="delete">Delete</button>
-      </div>
-    )
-  }
-}
-
 export class MiddleCellKeyboard extends ToggleCellKeyboard {
   render () {
     return (
-      <div id="middle-number" class="keyboard middle-cell">
+      <div class="keyboard middle-cell">
         <button>1</button>
         <button>2</button>
         <button>3</button>
@@ -95,7 +85,7 @@ export class MiddleCellKeyboard extends ToggleCellKeyboard {
 export class CornerCellKeyboard extends ToggleCellKeyboard {
   render () {
     return (
-      <div id="corner-number" class="keyboard">
+      <div class="keyboard">
         <button><span class="top-left">1</span></button>
         <button><span class="top-middle">2</span></button>
         <button><span class="top-right">3</span></button>
@@ -114,7 +104,7 @@ export class CornerCellKeyboard extends ToggleCellKeyboard {
 export class ColorCellKeyboard extends BaseKeyboardMode {
   render () {
     return (
-      <div id="color" class="keyboard">
+      <div class="keyboard">
         <button />
         <button />
         <button />
@@ -127,5 +117,37 @@ export class ColorCellKeyboard extends BaseKeyboardMode {
         <button class="delete">Delete</button>
       </div>
     )
+  }
+}
+
+export class SingleExtraKeyboard extends BaseKeyboardMode {
+  constructor (setRule, ruleName, baseLength) {
+    super()
+    this.setRule = setRule
+    this.rulename = ruleName
+    this.baseLength = baseLength
+  }
+
+  set (...val) {
+    this.setRule(this.rulename, ...val)
+  }
+
+  handle_delete () {
+    this.set(0, rule => {
+      if (rule && rule.length > this.baseLength) {
+        return rule.slice(0, this.baseLength)
+      }
+      return rule
+    })
+  }
+
+  handle_number (key) {
+    console.log('single', key)
+    this.set(0, rule => {
+      if (!rule || rule[this.baseLength] === key) {
+        return rule
+      }
+      return [...rule.slice(0, this.baseLength), key]
+    })
   }
 }

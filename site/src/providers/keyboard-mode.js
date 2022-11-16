@@ -2,7 +2,7 @@ import { createSignal, createMemo, createContext, useContext, createSelector, on
 import { usePuzzle } from './puzzle.js'
 import { useSolverInfo } from './grid-info.js'
 import { useMouseMode } from './mouse-mode.js'
-import { FullCellKeyboard, MiddleCellKeyboard, CornerCellKeyboard, ColorCellKeyboard } from '../modes/keyboard.js'
+import { ToggleCellKeyboard, MiddleCellKeyboard, CornerCellKeyboard, ColorCellKeyboard, SingleExtraKeyboard } from '../modes/keyboard.js'
 
 const KeyboardModeContext = createContext()
 
@@ -10,14 +10,15 @@ export function useKeyboardMode () {
   return useContext(KeyboardModeContext)
 }
 export function KeyboardModeProvider (props) {
-  const { toggleCell, clearCell } = usePuzzle()
+  const { toggleCell, clearCell, setRule } = usePuzzle()
   const mouseMode = useMouseMode()[0]
   const { toggleMiddle, clearMiddle, toggleCorner, clearCorner } = useSolverInfo()
   const KeyboardMode = {
-    FullCell: new FullCellKeyboard(mouseMode, toggleCell, clearCell),
+    FullCell: new ToggleCellKeyboard(mouseMode, toggleCell, clearCell),
     MiddleCell: new MiddleCellKeyboard(mouseMode, toggleMiddle, clearMiddle),
     CornerCell: new CornerCellKeyboard(mouseMode, toggleCorner, clearCorner),
-    ColorCell: new ColorCellKeyboard(mouseMode)
+    ColorCell: new ColorCellKeyboard(mouseMode),
+    Difference: new SingleExtraKeyboard(setRule, 'diff', 2)
   }
   const [state, setState] = createSignal(KeyboardMode.FullCell)
   const value = [state, setState, KeyboardMode]

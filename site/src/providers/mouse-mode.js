@@ -1,5 +1,5 @@
 import { createSignal, createMemo, createContext, useContext, createSelector, onMount, onCleanup } from 'solid-js'
-import { SelectionMode, TwoLineRuleMode, RemoveFromTwoLine } from '../modes/mouse.js'
+import { SelectionMode, TwoLineRuleMode, RemoveFromTwoLine, ToggleSide } from '../modes/mouse.js'
 import { usePuzzle } from '../providers/puzzle.js'
 
 const MouseModeContext = createContext()
@@ -16,7 +16,8 @@ export function MouseModeProvider (props) {
   const MouseMode = {
     Selection: new SelectionMode(mouseDownSignal),
     Thermo: new TwoLineRuleMode(mouseDownSignal, setRule, 'thermo'),
-    ThermoDelete: new RemoveFromTwoLine(mouseDownSignal, setRule, 'thermo', setToSelection)
+    ThermoDelete: new RemoveFromTwoLine(mouseDownSignal, setRule, 'thermo', setToSelection),
+    Difference: new ToggleSide(mouseDownSignal, setRule, 'diff', 3)
   }
   const [state, setState] = createSignal(MouseMode.Selection)
   const value = [state, setState, MouseMode]

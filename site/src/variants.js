@@ -2,12 +2,14 @@ import { For } from 'solid-js'
 import { DiagPos, DiagNeg } from './variants/diag.js'
 import { King } from './variants/chess.js'
 import * as Thermo from './variants/thermo.js'
+import * as Difference from './variants/difference.js'
 
 export const variants = [
   DiagPos,
   DiagNeg,
   King,
-  Thermo
+  Thermo,
+  Difference
 ]
 
 export const variantsMap = new Map(variants.map((variant) => [variant.key, variant]))
@@ -21,7 +23,6 @@ function Settings (props) {
       <For each={variants}>
         {(Item) => <Item.Settings/>}
       </For>
-       <button onClick={difference}>Difference</button>
     </>
   )
 }

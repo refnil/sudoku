@@ -1,4 +1,4 @@
-import { For, createMemo } from 'solid-js'
+import { For, createMemo, Show } from 'solid-js'
 import { usePuzzle } from './providers/puzzle.js'
 import { useSolverInfo, useComputerInfo } from './providers/grid-info.js'
 import { useMouseMode } from './providers/mouse-mode.js'
@@ -20,6 +20,7 @@ const CellComponent = (props) => {
   const mouseMode = useMouseMode()[0]
   const mouseDown = createMemo(() => mouseMode().click(props.index()))
   const mouseOver = createMemo(() => mouseMode().over(props.index()))
+  const mouseSide = createMemo(() => mouseMode().side(props.index()))
   const isSelected = createMemo(() => mouseMode().isSelected(props.index()))
 
   const puzzleCell = createMemo(() => usePuzzle().puzzle.grid.cells[props.index()])
@@ -89,6 +90,18 @@ const CellComponent = (props) => {
         }</For>
         <span class="middle-cell" classList={{ [middleClass()]: true }} >{middleArray()}</span>
         {mainText()}
+        <Show when={props.index() % 9 !== 0}>
+          <span class="line-button left-line-button" onClick={(e) => mouseSide()(e, props.index() - 1, props.index())}/>
+        </Show>
+        <Show when={props.index() % 9 !== 8}>
+          <span class="line-button right-line-button" onClick={(e) => mouseSide()(e, props.index(), props.index() + 1)}/>
+        </Show>
+        <Show when={props.index() < 72}>
+          <span class="line-button bottom-line-button" onClick={(e) => mouseSide()(e, props.index(), props.index() + 9)}/>
+        </Show>
+        <Show when={props.index() >= 9}>
+          <span class="line-button top-line-button" onClick={(e) => mouseSide()(e, props.index() - 9, props.index())}/>
+        </Show>
         </li>
   )
 }
