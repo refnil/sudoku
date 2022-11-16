@@ -84,3 +84,79 @@ export class SelectionMode extends BaseMouseMode {
     return this.selectedSetSignal[0]()
   }
 }
+
+export class TwoLineRuleMode extends BaseMouseMode {
+  constructor (mouseDown, setRule, rulename) {
+    super(mouseDown)
+    this.setRule = setRule
+    this.rulename = rulename
+  }
+
+  set (...val) {
+    this.setRule(this.rulename, ...val)
+  }
+
+  add (index) {
+    this.set(0, arr => {
+      if (arr.indexOf(index) >= 0) {
+        return arr
+      } else {
+        return [...arr, index]
+      }
+    })
+  }
+
+  clear (index, shift) {
+    this.set((c) => {
+      const n = c ? [...c] : []
+      n.unshift([])
+      return n
+    })
+  }
+
+  finish_click () {
+    this.set((rule) => {
+      rule = rule || []
+      const next = rule.filter(line => line.length > 1)
+      if (next.length === 0) {
+        return undefined
+      }
+      if (next.length === rule.length) {
+        return rule
+      }
+      return next
+    })
+  }
+}
+
+export class RemoveFromTwoLine extends BaseMouseMode {
+  constructor (mouseDown, setRule, rulename, onEmpty) {
+    super(mouseDown)
+    this.setRule = setRule
+    this.rulename = rulename
+    this.onEmpty = onEmpty
+  }
+
+  set (...val) {
+    this.setRule(this.rulename, ...val)
+  }
+
+  clear (index, shift) {
+    this.set((arr) => {
+      let changed = false
+      let next = [...arr]
+      for (let i = next.length - 1; i >= 0; i--) {
+        if (next[i].indexOf(index) >= 0) {
+          next.splice(i, 1)
+          changed = true
+        }
+      }
+      next = changed ? next : arr
+      next = next.length !== 0 ? next : undefined
+      if (!next) {
+        this.onEmpty()
+      }
+      return next
+    })
+  }
+}

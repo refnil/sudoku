@@ -63,8 +63,8 @@ export function PuzzleProvider (props) {
     getRule (name) {
       return state.grid.rules[name]
     },
-    setRule (name, value) {
-      setState('grid', 'rules', name, value)
+    setRule (name, ...value) {
+      setState('grid', 'rules', name, ...value)
     }
   }
 

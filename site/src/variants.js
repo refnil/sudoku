@@ -1,22 +1,18 @@
 import { For } from 'solid-js'
 import { DiagPos, DiagNeg } from './variants/diag.js'
 import { King } from './variants/chess.js'
+import * as Thermo from './variants/thermo.js'
 
 export const variants = [
   DiagPos,
   DiagNeg,
-  King
+  King,
+  Thermo
 ]
 
 export const variantsMap = new Map(variants.map((variant) => [variant.key, variant]))
 
 function Settings (props) {
-  function thermoEdit () {
-    console.log('thermo edit')
-  }
-  function thermoDelete () {
-    console.log('thermo delete')
-  }
   function difference () {
     console.log('difference')
   }
@@ -25,10 +21,7 @@ function Settings (props) {
       <For each={variants}>
         {(Item) => <Item.Settings/>}
       </For>
-        <span class="merge_button">
-          <button onClick={thermoEdit}>Thermo</button><button onClick={thermoDelete} class="toggle-no-addon">&#x1F5D1;</button>
-        </span>
-        <button onClick={difference}>Difference</button>
+       <button onClick={difference}>Difference</button>
     </>
   )
 }
