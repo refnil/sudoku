@@ -1,23 +1,23 @@
-import { createSignal, createEffect } from 'solid-js'
+import { createSignal, createEffect, createMemo, Show } from 'solid-js'
 import { usePuzzle } from '../providers/puzzle.js'
 import { useComputerInfo } from '../providers/grid-info.js'
 import { useComputer } from '../providers/computer.js'
 import Variants from '../variants.js'
 
 function SudokuLineEdit () {
-  const { loadSudokuLine, exportSudokuLine } = usePuzzle()
-  const [sudokuLine, setSudokuLine] = createSignal()
+  const { loadSudokuLine, sudokuLine } = usePuzzle()
+  const [content, setContent] = createSignal()
   const [isFocus, setIsFocus] = createSignal(false)
   createEffect(() => {
     if (!isFocus()) {
-      setSudokuLine(exportSudokuLine())
+      setContent(sudokuLine())
     }
   })
 
   return (
-    <textarea value={sudokuLine()} onInput={(e) => {
+    <textarea value={content()} onInput={(e) => {
       loadSudokuLine(e.target.value)
-      setSudokuLine(e.target.value)
+      setContent(e.target.value)
     }}
     onFocus={() => setIsFocus(true) }
     onBlur={() => setIsFocus(false) }
@@ -26,7 +26,7 @@ function SudokuLineEdit () {
 }
 
 export function SetterTab () {
-  const { puzzle, setName, setAuthor, setExtraRules, loadSudokuLine } = usePuzzle()
+  const { puzzle, setName, setAuthor, setExtraRules, loadSudokuLine, url, sudokuLine } = usePuzzle()
   const { solveCount, generateNewSudoku, solve, solveResultMessage } = useComputer()
   const { setShow, show } = useComputerInfo()
 
@@ -38,7 +38,7 @@ export function SetterTab () {
   }
   return (
       <div class="sudoku-side">
-        <h2 style={{'margin-top':'0px'}}>Setter menu</h2>
+        <h2 style={{ 'margin-top': '0px' }}>Setter menu</h2>
         <button onClick={resetGrid}>New grid</button>
         <details>
           <summary>Puzzle informations editor</summary>
@@ -60,9 +60,13 @@ export function SetterTab () {
             <Variants.Settings/>
         </p>
         <h3>Sharing</h3>
-        <p><a>Setting url</a></p>
-        <p><a>Solving url</a></p>
-        <p><a>Export to sudokuwiki</a></p>
+        <Show when={url().indexOf('?') >= 0} fallback={<p>No link when grid is empty</p>}>
+        <p><a href={url()}>Setting url</a></p>
+        <p><a href={url()+'&solve'}>Solving url</a></p>
+        <Show when={sudokuLine().indexOf(';') < 0}>
+        <p><a href={`https://www.sudokuwiki.org/sudoku.htm?db=${sudokuLine()}`}>Export to sudokuwiki</a></p>
+        </Show>
+        </Show>
         <h3>Other</h3>
         <details>
           <summary>Setter settings</summary>

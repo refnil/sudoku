@@ -33,7 +33,13 @@ function makeValue () {
       setState(index, { middle: [], corner: [], main: null })
     },
     setCell (index, value) {
-      setState(index, { main: value })
+      setState(index, 'main', value)
+    },
+    clearCell (index) {
+      counter.setCell(index, null)
+    },
+    toggleCell(index, value) {
+      counter.setCell(index, (p) => p === value ? null : value)
     },
     toggleMiddle (index, value) {
       setState(index, (p) => {

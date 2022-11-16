@@ -8,7 +8,7 @@ export function useComputer () {
   return useContext(ComputerContext)
 }
 export function ComputerProvider (props) {
-  const { puzzle, loadSudokuLine, exportSudokuLine } = usePuzzle()
+  const { puzzle, loadSudokuLine, sudokuLine } = usePuzzle()
   const { setCell, setMiddle, resetCell, setShow } = useComputerInfo()
   const [solveCount, setSolveCount] = createSignal('No result yet')
   const [solveResultMessage, setSolveResultMessage] = createSignal()
@@ -54,7 +54,7 @@ export function ComputerProvider (props) {
 
   // Update solve count
   createEffect(() => {
-    sudokuWorker.postMessage(['solve_count', exportSudokuLine(), 10000])
+    sudokuWorker.postMessage(['solve_count', sudokuLine(), 10000])
     setSolveCount('No result yet')
   })
 
@@ -65,7 +65,7 @@ export function ComputerProvider (props) {
       sudokuWorker.postMessage(['generate'])
     },
     solve () {
-      sudokuWorker.postMessage(['solve_common', exportSudokuLine(), 1000])
+      sudokuWorker.postMessage(['solve_common', sudokuLine(), 1000])
     }
   }
   return (

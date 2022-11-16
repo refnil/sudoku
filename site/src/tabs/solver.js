@@ -16,7 +16,7 @@ function ModeButton (props) {
   )
 }
 
-export const SolverTab = () => {
+export const SolverTab = (props) => {
   const { puzzle } = usePuzzle()
   const [keyboardMode, setKeyboardMode, KeyboardModes] = useKeyboardMode()
 
@@ -27,8 +27,10 @@ export const SolverTab = () => {
         <Dynamic component={keyboardMode().render()}/>
       </div>
       <div class="column">
-        <button id='app_mode_button'>Mode: <span id='app_mode'>setter</span></button>
-        <ModeButton mode={KeyboardModes.FullCell}>Number</ModeButton>
+        <Show when={!props.solveOnly}>
+          <ModeButton mode={KeyboardModes.FullCell}>Number setter</ModeButton>
+        </Show>
+        <ModeButton mode={KeyboardModes.SolverFullCell}>Number{!props.solveOnly && " solver"}</ModeButton>
         <ModeButton mode={KeyboardModes.CornerCell} fallback>Corner</ModeButton>
         <ModeButton mode={KeyboardModes.MiddleCell} fallback>Center</ModeButton>
         <ModeButton mode={KeyboardModes.ColorCell} fallback>Color</ModeButton>

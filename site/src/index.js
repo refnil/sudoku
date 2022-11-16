@@ -1,5 +1,6 @@
 import './index.css'
 
+import { createEffect, createSignal } from 'solid-js'
 import { render } from 'solid-js/web'
 
 import { KeyboardModeProvider } from './providers/keyboard-mode.js'
@@ -23,19 +24,34 @@ function Header () {
   )
 }
 
+function URLManager (props) {
+  const { url } = usePuzzle()
+  createEffect(() => {
+    let u = url()
+    if (u.indexOf('?') >= 0 && props.solveOnly) {
+        u += "&solve"
+    }
+    window.history.replaceState({}, '', u)
+  })
+}
+
 const App = () => {
+  const solveOnly = new URLSearchParams(window.location.search).get("solve") !== null
   return (
     <PuzzleProvider>
     <InfoProvider>
     <ComputerProvider>
     <MouseModeProvider>
-    <KeyboardModeProvider>
+    <KeyboardModeProvider solveOnly={solveOnly}>
     <Header/>
     <div class="sudoku-container">
-      <SetterTab />
+      <Show when={!solveOnly}>
+        <SetterTab />
+      </Show>
       <GridComponent/>
-      <SolverTab/>
+      <SolverTab solveOnly={solveOnly} />
     </div>
+    <URLManager solveOnly={solveOnly}/>
     </KeyboardModeProvider>
     </MouseModeProvider>
     </ComputerProvider>

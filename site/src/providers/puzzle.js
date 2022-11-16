@@ -1,4 +1,4 @@
-import { createContext, useContext, batch, createEffect } from 'solid-js'
+import { createContext, useContext, batch, createEffect, createMemo } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import { variantsMap } from '../variants.js'
 
@@ -17,6 +17,26 @@ export function PuzzleProvider (props) {
       },
       cells: Array(81).fill(null)
     }
+  })
+  const searchParams = new URLSearchParams(window.location.search)
+  const initialData = searchParams.get('data')
+
+  const sudokuLine = createMemo(() => {
+    let sudokuLine = state.grid.cells.map(v => v === null ? '.' : v).join('')
+    for (const [key, rule] of Object.entries(state.grid.rules)) {
+      sudokuLine += ';' + variantsMap.get(key).extract(rule)
+    }
+    return sudokuLine
+  })
+  const url = createMemo(() => {
+    const url = window.location.href.split('?')[0]
+    const line = sudokuLine()
+    for (const letter of line) {
+      if (letter !== '.') {
+        return `${url}?data=${line}`
+      }
+    }
+    return url
   })
   const counter =
   {
@@ -41,22 +61,33 @@ export function PuzzleProvider (props) {
     },
     loadSudokuLine (line) {
       batch(() => {
-        for (let i = 0; i < 81; i++) {
-          let value = line[i]
-          if (value === undefined || value === '.') {
-            value = null
+        counter.clearAllRules()
+        for (const part of line.split(';')) {
+          let found = false
+          for (const [key, variant] of variantsMap) {
+            if (part.startsWith(key)) {
+              counter.setRule(key, variant.load(part))
+              found = true
+              break
+            }
           }
-          counter.setCell(i, value)
+          if (!found) {
+            // if no variant found, assume we have cells
+            // strip clue prefix for compatibility with v1
+            line = line.replace('clue', '')
+            for (let i = 0; i < 81; i++) {
+              let value = line[i]
+              if (value === undefined || value === '.') {
+                value = null
+              }
+              counter.setCell(i, value)
+            }
+          }
         }
       })
     },
-    exportSudokuLine () {
-      let sudokuLine = state.grid.cells.map(v => v === null ? '.' : v).join('')
-      for (const [key, rule] of Object.entries(state.grid.rules)) {
-        sudokuLine += ';' + variantsMap.get(key).extract(rule)
-      }
-      return sudokuLine
-    },
+    sudokuLine,
+    url,
     isRule (name) {
       return !!counter.getRule(name)
     },
@@ -65,7 +96,15 @@ export function PuzzleProvider (props) {
     },
     setRule (name, ...value) {
       setState('grid', 'rules', name, ...value)
+    },
+    clearAllRules () {
+      setState('grid', { rules: {} })
     }
+  }
+
+  if (initialData) {
+    console.log('Loading from data in url', initialData)
+    counter.loadSudokuLine(initialData)
   }
 
   return (

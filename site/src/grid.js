@@ -81,7 +81,7 @@ const CellComponent = (props) => {
   const cornerClass = createMemo(() => corner() && corner()[1])
 
   return (
-        <li class={mainClass()} classList={{ selected: isSelected() }}
+        <li classList={{ selected: isSelected(), [mainClass()]: true }}
             onMouseDown={(e) => mouseDown()(e)}
             onMouseOver={(e) => mouseOver()(e)}
         >

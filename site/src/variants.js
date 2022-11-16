@@ -15,9 +15,6 @@ export const variants = [
 export const variantsMap = new Map(variants.map((variant) => [variant.key, variant]))
 
 function Settings (props) {
-  function difference () {
-    console.log('difference')
-  }
   return (
     <>
       <For each={variants}>
