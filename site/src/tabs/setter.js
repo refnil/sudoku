@@ -69,15 +69,6 @@ export function SetterTab () {
         </Show>
         <h3>Other</h3>
         <details>
-          <summary>Setter settings</summary>
-          <button id="hide_setter">Hide setter side in solving mode</button>
-          <label>Solution count limit:</label><input id="solution_count_limit" type="number" step="100"/>
-          <label>Solve limit:</label><input id="solve_limit" type="number" step="100"/>
-          <label>Solve max middle number: </label><input id="solve_max_middle_number" type="number"/>
-          <h4>Debug options</h4>
-          <button id="count_after_solve">Update solution count after solve</button>
-        </details>
-        <details>
           <summary>Manual edit</summary>
           <SudokuLineEdit/>
         </details>
