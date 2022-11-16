@@ -4,6 +4,7 @@ import { cellIDToSVGPos } from './svg.js'
 import { useMouseMode } from '../providers/mouse-mode.js'
 
 export const key = 'thermo'
+export const rule = 'The number are growing along a thermometer from the bubble to the tip.'
 export function load (string) {
 }
 

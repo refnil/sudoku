@@ -3,6 +3,7 @@ import { Dynamic } from 'solid-js/web'
 import { usePuzzle } from '../providers/puzzle.js'
 import { useKeyboardMode } from '../providers/keyboard-mode.js'
 import { useSolverInfo } from '../providers/grid-info.js'
+import Variants from '../variants.js'
 
 function ModeButton (props) {
   const [keyboardMode, setKeyboardMode, KeyboardModes] = useKeyboardMode()
@@ -45,6 +46,7 @@ export const SolverTab = (props) => {
       </div>
       </div>
       <p>{puzzle.extraRules}</p>
+      <p><Variants.Rules/></p>
       <p id="puzzle_variant_rule" />
       <details>
         <summary>App info</summary>

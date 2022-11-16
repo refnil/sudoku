@@ -11,9 +11,10 @@ export function SimpleVariantButton (props) {
   )
 }
 
-export function makeSimpleVariant (key, settingLabel, RenderComponent) {
+export function makeSimpleVariant (key, settingLabel, rule, RenderComponent) {
   return {
     key,
+    rule,
     load (ruleString) {
       return true
     },

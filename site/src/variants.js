@@ -1,4 +1,5 @@
 import { For } from 'solid-js'
+import { usePuzzle } from './providers/puzzle.js'
 import { DiagPos, DiagNeg } from './variants/diag.js'
 import { King } from './variants/chess.js'
 import * as Thermo from './variants/thermo.js'
@@ -34,4 +35,10 @@ function Render (props) {
   )
 }
 
-export default { Render, Settings }
+function Rules(props)
+{
+    const { isRule } = usePuzzle()
+    return <>{[...new Set(variants.filter(v=>isRule(v.key)).map(v=>v.rule))].join(" ")}</>
+}
+
+export default { Render, Settings, Rules }

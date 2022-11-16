@@ -5,6 +5,7 @@ import { useMouseMode } from '../providers/mouse-mode.js'
 import { useKeyboardMode } from '../providers/keyboard-mode.js'
 
 export const key = 'diff'
+export const rule = 'A number in a green circle between two cells is the difference of these two cells.'
 export function load (ruleString) {
 }
 
