@@ -89,7 +89,7 @@ const CellComponent = (props) => {
             <span class="corner-cell" classList={{ [cornerNames[index()]]: true, [cornerClass()]: true }}>{digit}</span>
         }</For>
         <span class="middle-cell" classList={{ [middleClass()]: true }} >{middleArray()}</span>
-        {mainText()}
+        <span>{mainText()}</span>
         <Show when={props.index() % 9 !== 0}>
           <span class="line-button left-line-button" onClick={(e) => mouseSide()(e, props.index() - 1, props.index())}/>
         </Show>
