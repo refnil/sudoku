@@ -305,40 +305,40 @@ button {
   font-size: 1.4rem;
 }
 
-#corner-number button {
+.corner-keyboard button {
   position: relative;
   font-size: 1.4rem;
 }
 
-#corner-number button span {
+.corner-keyboard button span {
   position:absolute;
 }
 
-#color button:nth-child(1) {
+.color-keyboard button:nth-child(1) {
   background-color: var(--solve-color-1);
 }
-#color button:nth-child(2) {
+.color-keyboard button:nth-child(2) {
   background-color: var(--solve-color-2);
 }
-#color button:nth-child(3) {
+.color-keyboard button:nth-child(3) {
   background-color: var(--solve-color-3);
 }
-#color button:nth-child(4) {
+.color-keyboard button:nth-child(4) {
   background-color: var(--solve-color-4);
 }
-#color button:nth-child(5) {
+.color-keyboard button:nth-child(5) {
   background-color: var(--solve-color-5);
 }
-#color button:nth-child(6) {
+.color-keyboard button:nth-child(6) {
   background-color: var(--solve-color-6);
 }
-#color button:nth-child(7) {
+.color-keyboard button:nth-child(7) {
   background-color: var(--solve-color-7);
 }
-#color button:nth-child(8) {
+.color-keyboard button:nth-child(8) {
   background-color: var(--solve-color-8);
 }
-#color button:nth-child(9) {
+.color-keyboard button:nth-child(9) {
   background-color: var(--solve-color-9);
 }
 

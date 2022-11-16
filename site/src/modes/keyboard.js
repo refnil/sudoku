@@ -85,7 +85,7 @@ export class MiddleCellKeyboard extends ToggleCellKeyboard {
 export class CornerCellKeyboard extends ToggleCellKeyboard {
   render () {
     return (
-      <div class="keyboard">
+      <div class="keyboard corner-keyboard">
         <button><span class="top-left">1</span></button>
         <button><span class="top-middle">2</span></button>
         <button><span class="top-right">3</span></button>
@@ -104,7 +104,7 @@ export class CornerCellKeyboard extends ToggleCellKeyboard {
 export class ColorCellKeyboard extends BaseKeyboardMode {
   render () {
     return (
-      <div class="keyboard">
+      <div class="keyboard color-keyboard">
         <button />
         <button />
         <button />
