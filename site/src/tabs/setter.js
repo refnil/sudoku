@@ -38,7 +38,7 @@ export function SetterTab () {
   }
   return (
       <div class="sudoku-side">
-        <h2>Setter menu</h2>
+        <h2 style={{'margin-top':'0px'}}>Setter menu</h2>
         <button onClick={resetGrid}>New grid</button>
         <details>
           <summary>Puzzle informations editor</summary>
