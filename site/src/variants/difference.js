@@ -1,4 +1,4 @@
-import { Show, createMemo, createEffect, For } from 'solid-js'
+import { Show, createMemo, createEffect, For, batch } from 'solid-js'
 import { cellIDToSVGPos } from './svg.js'
 import { usePuzzle } from '../providers/puzzle.js'
 import { useMouseMode } from '../providers/mouse-mode.js'
@@ -56,8 +56,8 @@ export function Render (props) {
 export function Settings (props) {
   const { isRule, setRule } = usePuzzle()
   const [mouseMode, setMouseMode, MouseMode] = useMouseMode()
-  const [setKeyboardMode, KeyboardMode] = useKeyboardMode().slice(1)
-  const isEditing = createMemo(() => mouseMode() === MouseMode.Difference)
+  const [keyboardMode, setKeyboardMode, KeyboardMode] = useKeyboardMode()
+  const isEditing = createMemo(() => mouseMode() === MouseMode.Difference && keyboardMode() === KeyboardMode.Difference)
   createEffect(() => {
     if (!isEditing()) {
       setRule(key, (arr) => {
@@ -73,12 +73,20 @@ export function Settings (props) {
         next = changed ? next : arr
         return next
       })
+      if (keyboardMode() === KeyboardMode.Difference) {
+          setKeyboardMode(KeyboardMode.FullCell)
+      }
+      if (mouseMode() === MouseMode.Difference) {
+          setMouseMode(MouseMode.Selection)
+      }
     }
   })
 
   function toggleEdit () {
-    setKeyboardMode(isEditing() ? KeyboardMode.FullCell : KeyboardMode.Difference)
-    setMouseMode(isEditing() ? MouseMode.Selection : MouseMode.Difference)
+    batch(() => {
+      setKeyboardMode(isEditing() ? KeyboardMode.FullCell : KeyboardMode.Difference)
+      setMouseMode(isEditing() ? MouseMode.Selection : MouseMode.Difference)
+    })
   }
   return (
         <button
