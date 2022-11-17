@@ -128,7 +128,6 @@ export class SingleExtraKeyboard extends BaseKeyboardMode {
   }
 
   handle_number (key) {
-    console.log('single', key)
     this.set(0, rule => {
       if (!rule || rule[this.baseLength] === key) {
         return rule
