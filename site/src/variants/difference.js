@@ -5,6 +5,7 @@ import { useMouseMode } from '../providers/mouse-mode.js'
 import { useKeyboardMode } from '../providers/keyboard-mode.js'
 
 export const key = 'diff'
+export const above = true
 export const rule = 'A number in a green circle between two cells is the difference of these two cells.'
 export function load (string) {
   const value = string.replace(key, '').split('|').filter(p => p)
@@ -74,10 +75,10 @@ export function Settings (props) {
         return next
       })
       if (keyboardMode() === KeyboardMode.Difference) {
-          setKeyboardMode(KeyboardMode.FullCell)
+        setKeyboardMode(KeyboardMode.FullCell)
       }
       if (mouseMode() === MouseMode.Difference) {
-          setMouseMode(MouseMode.Selection)
+        setMouseMode(MouseMode.Selection)
       }
     }
   })

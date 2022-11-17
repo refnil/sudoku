@@ -27,11 +27,26 @@ function Settings (props) {
 
 function Render (props) {
   return (
+    <>
     <svg xmlns="http://www.w3.org/2000/svg" class="svg" viewbox="0 0 900 900">
       <For each={variants}>
-        {(Item) => <Item.Render/>}
+        {(Item) =>
+        <Show when={!Item.above}>
+            <Item.Render/>
+        </Show>
+        }
       </For>
     </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" class="svg above" viewbox="0 0 900 900">
+      <For each={variants}>
+        {(Item) =>
+        <Show when={Item.above}>
+            <Item.Render/>
+        </Show>
+        }
+      </For>
+    </svg>
+    </>
   )
 }
 
