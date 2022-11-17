@@ -37,7 +37,7 @@ function notify (notification, count) {
 }
 console.notify = notify
 
-import('../node_modules/sudoku/sudoku.js').then((sudoku) => {
+import('sudoku/sudoku.js').then((sudoku) => {
   function receiveMessage (message) {
     switch (message.data[0]) {
       case 'solve_count':
