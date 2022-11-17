@@ -45,7 +45,7 @@ function Diff (props) {
 }
 
 export function Render (props) {
-  const { isRule, getRule } = usePuzzle()
+  const { getRule } = usePuzzle()
   return (
       <For each={getRule(key)} >
       {(diff) => <Diff diff={diff}/>}
@@ -56,7 +56,7 @@ export function Render (props) {
 export function Settings (props) {
   const { isRule, setRule } = usePuzzle()
   const [mouseMode, setMouseMode, MouseMode] = useMouseMode()
-  const [keyboardMode, setKeyboardMode, KeyboardMode] = useKeyboardMode()
+  const [setKeyboardMode, KeyboardMode] = useKeyboardMode().slice(1)
   const isEditing = createMemo(() => mouseMode() === MouseMode.Difference)
   createEffect(() => {
     if (!isEditing()) {

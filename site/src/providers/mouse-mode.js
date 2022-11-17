@@ -1,4 +1,4 @@
-import { createSignal, createMemo, createContext, useContext, createSelector, onMount, onCleanup } from 'solid-js'
+import { createSignal, createContext, useContext, onMount, onCleanup } from 'solid-js'
 import { SelectionMode, TwoLineRuleMode, RemoveFromTwoLine, ToggleSide } from '../modes/mouse.js'
 import { usePuzzle } from '../providers/puzzle.js'
 

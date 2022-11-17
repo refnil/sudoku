@@ -1,4 +1,4 @@
-import { createSignal, createMemo, createContext, useContext, createSelector, onMount, onCleanup } from 'solid-js'
+import { createSignal, createContext, useContext, onMount, onCleanup } from 'solid-js'
 import { usePuzzle } from './puzzle.js'
 import { useSolverInfo } from './grid-info.js'
 import { useMouseMode } from './mouse-mode.js'

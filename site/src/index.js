@@ -1,6 +1,6 @@
 import './index.css'
 
-import { createEffect, createSignal, Show } from 'solid-js'
+import { createEffect, Show } from 'solid-js'
 import { render } from 'solid-js/web'
 
 import { KeyboardModeProvider } from './providers/keyboard-mode.js'

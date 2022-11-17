@@ -1,4 +1,4 @@
-import { batch, createSignal, createMemo, createContext, useContext, createSelector, onMount, onCleanup } from 'solid-js'
+import { batch, createSignal, createContext, useContext } from 'solid-js'
 import { createStore } from 'solid-js/store'
 
 const SolverContext = createContext()

@@ -1,4 +1,4 @@
-import { createMemo, createSelector, Show } from 'solid-js'
+import { createSelector, Show } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
 import { usePuzzle } from '../providers/puzzle.js'
 import { useKeyboardMode } from '../providers/keyboard-mode.js'
@@ -20,7 +20,8 @@ function ModeButton (props) {
 
 export const SolverTab = (props) => {
   const { puzzle } = usePuzzle()
-  const [keyboardMode, setKeyboardMode, KeyboardModes] = useKeyboardMode()
+  const keyboardMode = useKeyboardMode()[0]
+  const KeyboardModes = useKeyboardMode()[2]
   const { resetAllCell } = useSolverInfo()
   function clear () {
     if (confirm('Do you want to delete all progress?')) {

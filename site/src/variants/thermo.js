@@ -1,4 +1,4 @@
-import { Show, createMemo, createEffect, For } from 'solid-js'
+import { createMemo, For } from 'solid-js'
 import { usePuzzle } from '../providers/puzzle.js'
 import { cellIDToSVGPos } from './svg.js'
 import { useMouseMode } from '../providers/mouse-mode.js'

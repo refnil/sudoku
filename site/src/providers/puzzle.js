@@ -1,4 +1,4 @@
-import { createContext, useContext, batch, createEffect, createMemo } from 'solid-js'
+import { createContext, useContext, batch, createMemo } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import { variantsMap } from '../variants.js'
 

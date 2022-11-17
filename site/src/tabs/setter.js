@@ -1,4 +1,4 @@
-import { createSignal, createEffect, createMemo, Show } from 'solid-js'
+import { createSignal, createEffect, Show } from 'solid-js'
 import { usePuzzle } from '../providers/puzzle.js'
 import { useComputerInfo } from '../providers/grid-info.js'
 import { useComputer } from '../providers/computer.js'
